@@ -19,14 +19,20 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage(theme = shinytheme("flatly"), 
-                   title = "YOUR VERY INTERESTING TITLE",
+        navbarPage(theme = shinytheme("flatly"), ### Please choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
+                   title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
-            tabPanel("NYT data visualization",
+            tabPanel("NYT data visualization", ## do not change this name
             
                     # All user-provided input for NYT goes in here:
                     sidebarPanel(
+                        
+                        selectInput(inputID  = "nyt_viridis_scheme", # name for internal use as variable: input$nyt_viridis_scheme
+                                    label    = "What viridis color scheme should be used?", # label that users see
+                                    choices  = viridis_scheme_options,  # defined in covid_load_data.R
+                                    selected = "viridis")              # default color scheme. 
+                        
     
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
@@ -38,10 +44,15 @@ ui <- shinyUI(
             
             
             ## All UI for JHU goes in here:
-            tabPanel("JHU data visualization",
+            tabPanel("JHU data visualization", ## do not change this name
                      
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
+
+                         selectInput(inputID  = "jhu_viridis_scheme", # name for internal use as variable: input$jhu_viridis_scheme
+                                     label    = "What viridis color scheme should be used?", # label that users see
+                                     choices  = viridis_scheme_options,  # defined in covid_load_data.R
+                                     selected = "viridis")              # default color scheme. 
                          
                      ), # closes JHU sidebarPanel     
                      
