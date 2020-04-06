@@ -6,7 +6,6 @@
 
 #### Setting up
 
-
 1. Fork the repository `sjspielman/datascience_final_assignment` into your github account, and clone your repository for use
 2. Create a directory `lastname_firstname`, and use `git mv` to move the files `covid_data_load.R` and `app.R` into your directory. Add, commit, push, and you're off to the races!
 
@@ -43,7 +42,7 @@ You will read in three files (two from JHU and one from NYT) and ultimately prod
 
 Your shiny app will live in the file `app.R` - **never change the name of this file.** Your final application will have two panels (one for NYT data and one for JHU data), each with its own input sidepanel and mainpanel for output - this has already been templated for you!
 
-Each panel will reveal a *line plot* of its associated data. The line
+Each panel will reveal a *line plot* of its associated data. Components of a line plot should include:
 
 with plotting preferences chosen by the user! 
 
@@ -90,6 +89,7 @@ All data here is *cumulative* (the total number of cases or deaths up to and inc
 ### Bonus opportunities
 
 + Instead of using default shiny widgets, use widgets associated with the library [shinyWidgets](https://github.com/dreamRs/shinyWidgets)
-+ Toss the template out the window and make a [*Shiny Dashboard*](https://rstudio.github.io/shinydashboard/) with your own beautiful design
 + Include a third tabPanel displaying a map of USA (using the NYT data) where states are colored by either cases or deaths. There should be an input option indicating whether cases or deaths should be displayed, and you can use whatever color scheme you want!
++ Use the library `plotly` to make your plots interactive! 
++ Toss the template out the window and make a [*Shiny Dashboard*](https://rstudio.github.io/shinydashboard/) with your own beautiful design
 + *Serve* the application with a public-facing URL with a free-tier account on [https://www.shinyapps.io/](https://www.shinyapps.io/)
