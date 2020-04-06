@@ -4,12 +4,12 @@
 > 
 > This assignment grade is worth *two* regular assignments
 
-#### Setting up
+### Setting up
 
 1. Fork the repository `sjspielman/datascience_final_assignment` into your github account, and clone your repository for use
 2. Create a directory `lastname_firstname`, and use `git mv` to move the files `covid_data_load.R` and `app.R` into your directory. Add, commit, push, and you're off to the races!
 
-#### Part One: Prepare the data in `covid_data_load.R`
+### Part One: Prepare the data in `covid_data_load.R`
 
 You will read in three files (two from JHU and one from NYT) and ultimately produce *two TIDY tibbles* for use in the shiny app. Bear in mind: All data here is *cumulative* (the total number of cases or deaths up to and including that day!).
 
@@ -39,7 +39,7 @@ You will read in three files (two from JHU and one from NYT) and ultimately prod
 + *After* you finish making the JHU tibble, you need to re-cast the date column for each to clearly be treated as a date: `jhu_data$date <- lubridate::as_date(jhu_data$date)`. The date column in the NYT data should have been read in properly as a date (since this was a tidy column in the first place). You can also do the re-casting as `mutate()` if you are comfortable with that approach.
 + You do NOT need to save the data with `write_csv()`!! Because this script is *sourced* in the shiny app, all variables you create in this script are fully usable within the app itself. Don't make your life harder than it needs to be.
 
-#### Part Two: Make a shiny application!
+### Part Two: Make a shiny application!
 
 Your shiny app will live in the file `app.R` - **never change the name of this file.** Your final application will have two panels (one for NYT data and one for JHU data), each with its own input sidepanel and mainpanel for output - this has already been templated for you!
 
