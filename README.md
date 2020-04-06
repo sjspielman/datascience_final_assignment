@@ -11,7 +11,8 @@
 
 #### Part One: Prepare the data in `covid_data_load.R`
 
-You will read in three files (two from JHU and one from NYT) and ultimately produce *two TIDY tibbles* for use in the shiny app:
+You will read in three files (two from JHU and one from NYT) and ultimately produce *two TIDY tibbles* for use in the shiny app. Bear in mind: All data here is *cumulative* (the total number of cases or deaths up to and including that day!).
+
 
 1) A tibble of the NYT data *exactly called* `nyt_data` that should ultimately contain these final columns *that use these exact names*:
 
@@ -20,7 +21,7 @@ You will read in three files (two from JHU and one from NYT) and ultimately prod
 + `state`
 + `fips` (this is a location code used by maps, stands for "Federal Information Processing Standard")
 + `covid_type` (A categorical variable containing either "cases" or "deaths")
-+ `total_number` (The number associated with `covid_type`)
++ `cumulative_number` (The number associated with `covid_type`)
 
 2) A tibble of the JHU data *exactly called* `jhu_data` that should ultimately contain these final columns *that use these exact names*:
 
@@ -30,7 +31,7 @@ You will read in three files (two from JHU and one from NYT) and ultimately prod
 + `longitude`
 + `date`
 + `covid_type` (A categorical variable containing either "cases" or "deaths")
-+ `total_number` (The number associated with `covid_type`)
++ `cumulative_number` (The number associated with `covid_type`)
 
 
 **Notes and hints:**
@@ -44,41 +45,35 @@ Your shiny app will live in the file `app.R` - **never change the name of this f
 
 Each panel will reveal a *line plot* of its associated data. Components of a line plot should include:
 
-with plotting preferences chosen by the user! 
++ Time along the X-axis and cumulative number on the Y-axis
++ Use points within your line plot to emphasize the time points
++ Color lines based on `covid_type`
 
+There should be user-input widgets associated with each plot that indicate what should be plotted:
 
++ For NYT data, there must be at least **FIVE** widgets: (more widgets might get you some bonus if they make sense and work!)
+    + Choice for which state to plot
+    + Option to show counties as facets (using `facet_wrap()`), OR "ignore" county distinctions and show all data for the state in a single plot
+    + Option to start the X-axis on the date of first CASE for that state (HINT: filter data for cases > 0!!), versus show all dates with data
+    + Theme for the plot (users should have at least FIVE options to choose from)
+    + Options for colors to use (this has been templated for you, with defaults - please choose your own defaults!)
 
-All data here is *cumulative* (the total number of cases or deaths up to and including that day!)
++ For JHU data, there must be **FOUR** widgets: (more widgets might get you some bonus if they make sense and work!)
+    + Choice for which country/region to plot
+    + Option to start the X-axis on the date of first CASE for that state, versus show all dates with data
+    + Theme for the plot (users should have at least FIVE options to choose from)
+    + Options for colors to use (this has been templated for you, with defaults - please choose your own defaults!)
 
-1) NYT plot user-input options
-
-+ Select the viridis color scheme to use (this input widget is templated for you)
-+ Select how color will be applied
-+ Select which state to display
-+ Starting time point (i.e., where will the X-axis start?), one of:
-	+ Since beginning of data record
-	+ Since first *case* in state (HINT: filter for case > 0!
-+ How to display counties in the plot
-	+ Ignore county differences - just make one plot for the whole state
-	+ Facet the plot by county
-+ Whether to display the plot legend 
+    
 
 
 **Notes and hints:**
-
-+ For each NYT and JHU, you should define a *baseline plot* 
-+ As part of your code, you will need to write `if statements`. Remember that there are examples in the class slides for this, and also here! For example, how your plot is displayed
-
-	```
-	# user input variable called here `input_thing` might be either True/False. Whether it's T/F will indicate how the plot should be made
-	input_thing <- True
-	if (input_thing) {
-		ggplot(....) -> p
-	} else
-	{
-		ggplot(....) -> p
-	}
-	```
++ Remember: Everything on the server side needs to be within an appropriate context!!
+    + You should use **reactive** variables to store the subsetted data (e.g. subsetted to state/region of interest). This reactive variable should then be plotted.
+    + Plots should be defined *within* `renderPlot({})` constructs.
++ You will need to use `if/else` constructs for adding the theme to plots! 
++ 99% of the bugs you have are because of missing/extra commas in the UI. Welcome to shiny.
++ Remember to choose your own app theme!!! See the line in `app.R` that opens `navbarPage()`
 	
 ### Resources
 

@@ -22,11 +22,7 @@ jhu_confirmed_global_url <- paste0(jhu_top_url, "time_series_covid19_confirmed_g
 jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_global.csv")
 
 
-
-
-
-
-## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset --------------------------
+## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
 
 
 

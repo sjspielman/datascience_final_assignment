@@ -12,14 +12,14 @@
 library(shiny)
 library(shinythemes)
 library(tidyverse)
-library(viridis)
+library(colourpicker)
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage(theme = shinytheme("flatly"), ### Please choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
+        navbarPage( # theme = shinytheme("default"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
                    title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
@@ -28,18 +28,15 @@ ui <- shinyUI(
                     # All user-provided input for NYT goes in here:
                     sidebarPanel(
                         
-                        selectInput(inputID  = "nyt_viridis_scheme", # name for internal use as variable: input$nyt_viridis_scheme
-                                    label    = "What viridis color scheme should be used?", # label that users see
-                                    choices  = viridis_scheme_options,  # defined in covid_load_data.R
-                                    selected = "viridis")              # default color scheme. 
+                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "red")
                         
-    
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
                     # All output for NYT goes in here:
                     mainPanel(
-                        
-                    )# closes NYT mainPanel. Note: we don't need a comma here, since the next line closes a previous function  
+                        plotOutput("nyt_plot")
+                    ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function  
             ), # closes tabPanel for NYT data
             
             
@@ -49,23 +46,21 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         selectInput(inputID  = "jhu_viridis_scheme", # name for internal use as variable: input$jhu_viridis_scheme
-                                     label    = "What viridis color scheme should be used?", # label that users see
-                                     choices  = viridis_scheme_options,  # defined in covid_load_data.R
-                                     selected = "viridis")              # default color scheme. 
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "purple"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "orange")
                          
                      ), # closes JHU sidebarPanel     
                      
                      # All output for JHU goes in here:
                      mainPanel(
-                         
-                     )# closes JHU mainPanel     
-            ), # closes tabPanel for JHU data
+                        plotOutput("jhu_plot")
+                     ) # closes JHU mainPanel     
+            ) # closes tabPanel for JHU data
     ) # closes navbarPage
 ) # closes shinyUI
 
 # Server --------------------------------
-server <- function(input, output) {
+server <- function(input, output, session) {
 
     ## PROTIP!! Don't forget, all reactives and outputs are enclosed in ({}). Not just parantheses or curly braces, but BOTH! Parentheses on the outside.
     
@@ -74,9 +69,23 @@ server <- function(input, output) {
     
     ## All server logic for NYT goes here ------------------------------------------
     
+    ## Define a reactive for subsetting the NYT data
+    nyt_data <- reactive({})
+    
+    ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
+    nyt_plot <- renderPlot({})
+    
+    
     
     
     ## All server logic for JHU goes here ------------------------------------------
+
+    
+    ## Define a reactive for subsetting the JHU data
+    jhu_data <- reactive({})
+    
+    ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
+    jhu_plot <- renderPlot({})
     
 }
 
