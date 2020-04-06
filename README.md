@@ -16,22 +16,22 @@ You will read in three files (two from JHU and one from NYT) and ultimately prod
 
 1) A tibble of the NYT data *exactly called* `nyt_data` that should ultimately contain these final columns *that use these exact names*:
 
-+ `date`
-+ `county`
-+ `state`
-+ `fips` (this is a location code used by maps, stands for "Federal Information Processing Standard")
-+ `covid_type` (A categorical variable containing either "cases" or "deaths")
-+ `cumulative_number` (The number associated with `covid_type`)
+	+ `date`
+	+ `county`
+	+ `state`
+	+ `fips` (this is a location code used by maps, stands for "Federal Information Processing Standard")
+	+ `covid_type` (A categorical variable containing either "cases" or "deaths")
+	+ `cumulative_number` (The number associated with `covid_type`)
 
 2) A tibble of the JHU data *exactly called* `jhu_data` that should ultimately contain these final columns *that use these exact names*:
 
-+ `province_or_state`
-+ `country_or_region`
-+ `latitude`
-+ `longitude`
-+ `date`
-+ `covid_type` (A categorical variable containing either "cases" or "deaths")
-+ `cumulative_number` (The number associated with `covid_type`)
+	+ `province_or_state`
+	+ `country_or_region`
+	+ `latitude`
+	+ `longitude`
+	+ `date`
+	+ `covid_type` (A categorical variable containing either "cases" or "deaths")
+	+ `cumulative_number` (The number associated with `covid_type`)
 
 
 **Notes and hints:**
@@ -51,18 +51,20 @@ Each panel will reveal a *line plot* of its associated data. Components of a lin
 
 There should be user-input widgets associated with each plot that indicate what should be plotted:
 
-+ For NYT data, there must be at least **FIVE** widgets: (more widgets might get you some bonus if they make sense and work!)
-    + Choice for which state to plot
-    + Option to show counties as facets (using `facet_wrap()`), OR "ignore" county distinctions and show all data for the state in a single plot
-    + Option to start the X-axis on the date of first CASE for that state (HINT: filter data for cases > 0!!), versus show all dates with data
-    + Theme for the plot (users should have at least FIVE options to choose from)
-    + Options for colors to use (this has been templated for you, with defaults - please choose your own defaults!)
+**For NYT data, there must be at least FIVE widgets:** (more widgets might get you some bonus if they make sense and work!)
 
-+ For JHU data, there must be **FOUR** widgets: (more widgets might get you some bonus if they make sense and work!)
-    + Choice for which country/region to plot
-    + Option to start the X-axis on the date of first CASE for that state, versus show all dates with data
-    + Theme for the plot (users should have at least FIVE options to choose from)
-    + Options for colors to use (this has been templated for you, with defaults - please choose your own defaults!)
++ Choice for which state to plot
++ Option to show counties as facets (using `facet_wrap()`), OR "ignore" county distinctions and show all data for the state in a single plot
++ Option to start the X-axis on the date of first CASE for that state (HINT: filter data for cases > 0!!), versus show all dates with data
++ Theme for the plot (users should have at least FIVE options to choose from). These can either be built-in ggplot themes, or they can be from a different library of your choosing.
++ Options for colors to use (this has been templated for you, with defaults - please choose your own defaults!)
+
+**For JHU data, there must be at least FOUR widgets:** (more widgets might get you some bonus if they make sense and work!)
+
++ Choice for which country/region to plot
++ Option to start the X-axis on the date of first CASE for that state, versus show all dates with data
++ Theme for the plot (users should have at least FIVE options to choose from). These can either be built-in ggplot themes, or they can be from a different library of your choosing.
++ Options for colors to use (this has been templated for you, with defaults - please choose your own defaults!)
 
     
 
@@ -79,6 +81,7 @@ There should be user-input widgets associated with each plot that indicate what 
 
 1. [All the shiny control widgets (inputs!)](https://shiny.rstudio.com/tutorial/written-tutorial/lesson3/)
 2. [All the shiny outputs](https://shiny.rstudio.com/tutorial/written-tutorial/lesson4/)
+3. [THE DEFINITIVE tutorial](https://shiny.rstudio.com/tutorial/)
 
 
 ### Bonus opportunities
