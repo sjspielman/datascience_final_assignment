@@ -55,14 +55,14 @@ There should be user-input widgets associated with each plot that indicate what 
 
 + Choice for which state to plot
 + Option to show counties as facets (using `facet_wrap()`), OR "ignore" county distinctions and show all data for the state in a single plot
-+ Option to start the X-axis on the date of first CASE for that state/county (HINT: filter data for cases > 0!!), versus show all dates with data
++ Option to start the X-axis on the date of first 100th CASE for that state/county (HINT: filter data for cases >=100!!), versus show all dates with data
 + Theme for the plot (users should have at least FIVE options to choose from). These can either be built-in ggplot themes, or they can be from a different library of your choosing.
 + Options for colors to use (this has been templated for you, with defaults - please choose your own defaults!)
 
 **For JHU data, there must be at least FOUR widgets:** (more widgets might get you some bonus if they make sense and work!)
 
 + Choice for which country/region to plot
-+ Option to start the X-axis on the date of first CASE for that state, versus show all dates with data
++ Option to start the X-axis on the date of first 100th CASE for that state, versus show all dates with data
 + Theme for the plot (users should have at least FIVE options to choose from). These can either be built-in ggplot themes, or they can be from a different library of your choosing.
 + Options for colors to use (this has been templated for you, with defaults - please choose your own defaults!)
 
