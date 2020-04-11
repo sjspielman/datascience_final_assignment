@@ -77,6 +77,7 @@ There should be user-input widgets associated with each plot that indicate what 
 + You will need to use `if/else` constructs for adding the theme to plots! 
 + 99% of the bugs you will have are because of missing/extra commas in the UI. Welcome to shiny.
 + Remember to choose your own app theme!!! See the line in `app.R` that opens `navbarPage()`
++ Ensure that all plot renderings are fully legible. You may need to alter the size of the plots in `plotOutput()`! 
 	
 ### Resources
 
