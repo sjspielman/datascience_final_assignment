@@ -58,6 +58,7 @@ There should be user-input widgets associated with each plot that indicate what 
 + Choice for which state to plot
 + Option to show counties as facets (using `facet_wrap()`), OR "ignore" county distinctions and show all data for the state in a single plot
 + Option to start the X-axis on the date of first 100th CASE for that state/county (HINT: filter data for cases >=100!!), versus show all dates with data
+  + For a bonus, make the Nth case an input option
 + Option to show Y-axis on linear or log scale
 + Theme for the plot (users should have at least FOUR options to choose from). These can either be built-in ggplot themes, or they can be from a different library of your choosing.
 + Options for colors to use (this has been templated for you, with defaults - please choose your own defaults!). This is two widgets (one color widget for cases, one color widget for deaths)
@@ -66,8 +67,9 @@ There should be user-input widgets associated with each plot that indicate what 
 
 + Choice for which country/region to plot
 + Option to start the X-axis on the date of first 100th CASE for that state, versus show all dates with data
-++ Option to show Y-axis on linear or log scale
- Theme for the plot (users should have at least FOUR options to choose from). These can either be built-in ggplot themes, or they can be from a different library of your choosing.
+  + For a bonus, make the Nth case an input option
++ Option to show Y-axis on linear or log scale
++ Theme for the plot (users should have at least FOUR options to choose from). These can either be built-in ggplot themes, or they can be from a different library of your choosing.
 + Options for colors to use (this has been templated for you, with defaults - please choose your own defaults!). This is two widgets (one color widget for cases, one color widget for deaths)
     
 
@@ -90,6 +92,8 @@ There should be user-input widgets associated with each plot that indicate what 
 
 ### Bonus opportunities
 
++ Submit early by 5/8/20 at 11:59 pm for an automatic extra 10%
++ An option to display X-axis from the day with N infections rather than 100 day (the user picks N) 
 + Instead of using default shiny widgets, use widgets associated with the library [shinyWidgets](https://github.com/dreamRs/shinyWidgets)
 + Include a third tabPanel displaying a map of USA (using the NYT data) where states are colored by either cases or deaths. There should be an input option indicating whether cases or deaths should be displayed, and you can use whatever color scheme you want!
 + Use the library `plotly` to make your plots interactive! 
