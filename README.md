@@ -1,7 +1,9 @@
 # Final Assignment BIOL01301
 
->Due as a **Pull Request** to `sjspielman/datascience_final_assignment` by Tuesday May 12th at 11:59 pm. Due to university grade deadlines there are absolutely NO exceptions!!
+> Due as a **Pull Request** to `sjspielman/datascience_final_assignment` by Tuesday May 12th at 11:59 pm. Due to university grade deadlines there are absolutely NO exceptions!!
 > 
+> Submit early by *Friday 5/8/20 at 11:59 pm* for a bonus 10%!!!
+>
 > This assignment grade is worth *two* regular assignments
 
 ### Setting up
