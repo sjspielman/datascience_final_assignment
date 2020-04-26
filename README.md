@@ -51,6 +51,8 @@ Each panel should reveal a *line plot* of its associated data. Components of a l
 + Use points within your line plot to emphasize the time points
 + Color lines based on `covid_type`
 
+Alternatively, you may make a *bar plot* showing counts over time, where you color bars based on `covid_type` (either dodged or stacked, your call!). 
+
 There should be user-input widgets associated with each plot that indicate what should be plotted:
 
 **For NYT data, there must be at least SEVEN widgets:** (more widgets might get you some bonus if they make sense and work!)
