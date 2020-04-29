@@ -16,10 +16,11 @@ library(colourpicker)
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
+#source is super cool! You can use it for Rmarkdowns too! Keep this in mind for the future 
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage( # theme = shinytheme("default"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
+        navbarPage(theme = shinytheme("cyborg"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
                    title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
@@ -73,9 +74,18 @@ server <- function(input, output, session) {
     nyt_data <- reactive({})
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    nyt_plot <- renderPlot({})
+    nyt_plot <- renderPlot({
+        nyt_data %>%
+            filter(state == "Alabama") %>% #can't have lines going down. 
+            group_by(covid_type, date) %>% #needed to remove counties to get this into an appropriate line plot
+            summarize(total_county_day = sum(cumulative_number)) %>%
+            ggplot(aes(x = date, y = total_county_day, color = covid_type)) +
+                geom_point() +
+                geom_line() +
+                scale_color_manual = c(input$nyt_color_cases, input$nyt_color_deaths)
+    })
     
-    
+ 
     
     
     ## All server logic for JHU goes here ------------------------------------------
