@@ -7,7 +7,7 @@
 #    http://shiny.rstudio.com/
 #
 
-#hi
+
 # Load all libraries ------------------------------------------------------------------------
 library(shiny)
 library(shinythemes)
@@ -73,7 +73,16 @@ server <- function(input, output, session) {
     nyt_data <- reactive({})
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    nyt_plot <- renderPlot({})
+    output$nyt_plot <- renderPlot({
+        nyt_data %>%
+            filter( state == "Alabama") %>%
+            group_by(date, covid_type) %>%
+            summarize(total_county_day = sum(cumulative_number)) %>%
+            ggplot(aes(x = date, y = total_county_day, color=covid_type, group=covid_type)) +
+                geom_point() +
+                geom_line() +
+                scale_color_manual(values = c(input$nyt_color_cases, input$nyt_color_deaths))
+    })
     
     
     
