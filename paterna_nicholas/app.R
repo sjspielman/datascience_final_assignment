@@ -19,7 +19,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage( # theme = shinytheme("default"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
+        navbarPage(theme = shinytheme("sandstone"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
                    title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
@@ -73,7 +73,17 @@ server <- function(input, output, session) {
     nyt_data <- reactive({})
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    nyt_plot <- renderPlot({})
+    nyt_plot <- renderPlot({
+        nyt_data %>%
+            filter(state == "Alabama") %>%
+            group_by(date, covid_type) %>%
+            summarize(total_county_day = sum(cumulative_number)) %>%
+            ggplot(aes(x = date, y = total_county_day, color = covid_type, group = covid_type)) +
+                geom_point() +
+                geom_line() +
+                scale_color_manual(c(input$nyt_color_cases,
+                                     input$nyt_color_deaths,))
+    })
     
     
     
