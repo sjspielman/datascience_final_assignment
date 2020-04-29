@@ -70,7 +70,7 @@ server <- function(input, output, session) {
     ## All server logic for NYT goes here ------------------------------------------
     
     ## Define a reactive for subsetting the NYT data
-    nyt_data <- reactive({})
+    nyt_data_subset <- reactive({})
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$nyt_plot <- renderPlot({})
@@ -82,7 +82,7 @@ server <- function(input, output, session) {
 
     
     ## Define a reactive for subsetting the JHU data
-    jhu_data <- reactive({})
+    jhu_data_subset <- reactive({})
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$jhu_plot <- renderPlot({})
