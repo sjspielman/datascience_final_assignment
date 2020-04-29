@@ -73,7 +73,7 @@ server <- function(input, output, session) {
     nyt_data <- reactive({})
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    nyt_plot <- renderPlot({})
+    output$nyt_plot <- renderPlot({})
     
     
     
@@ -85,7 +85,7 @@ server <- function(input, output, session) {
     jhu_data <- reactive({})
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    jhu_plot <- renderPlot({})
+    output$jhu_plot <- renderPlot({})
     
 }
 
