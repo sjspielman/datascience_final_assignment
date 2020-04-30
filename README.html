@@ -420,25 +420,17 @@ summary {
 </ul>
 <p>Alternatively, you may make a <em>bar plot</em> showing counts over time, where you color bars based on <code>covid_type</code> (either dodged or stacked, your call!).</p>
 <p>There should be user-input widgets associated with each plot that indicate what should be plotted:</p>
-<p><strong>For NYT data, there must be at least SEVEN widgets:</strong> (more widgets might get you some bonus if they make sense and work!)</p>
+<p><strong>For NYT data, there must be at least SIX widgets:</strong> (more widgets might get you some bonus if they make sense and work!)</p>
 <ul>
 <li>Choice for which state to plot</li>
 <li>Option to show counties as facets (using <code>facet_wrap()</code>), OR “ignore” county distinctions and show all data for the state in a single plot</li>
-<li>Option to start the X-axis on the date of first 100th CASE for that state/county (HINT: filter data for cases &gt;=100!!), versus show all dates with data
-<ul>
-<li>For a bonus, make the Nth case an input option</li>
-</ul></li>
 <li>Option to show Y-axis on linear or log scale</li>
 <li>Theme for the plot (users should have at least FOUR options to choose from). These can either be built-in ggplot themes, or they can be from a different library of your choosing.</li>
 <li>Options for colors to use (this has been templated for you, with defaults - please choose your own defaults!). This is two widgets (one color widget for cases, one color widget for deaths)</li>
 </ul>
-<p><strong>For JHU data, there must be at least SIX widgets:</strong> (more widgets might get you some bonus if they make sense and work!)</p>
+<p><strong>For JHU data, there must be at least FIVE widgets:</strong> (more widgets might get you some bonus if they make sense and work!)</p>
 <ul>
 <li>Choice for which country/region to plot</li>
-<li>Option to start the X-axis on the date of first 100th CASE for that state, versus show all dates with data
-<ul>
-<li>For a bonus, make the Nth case an input option</li>
-</ul></li>
 <li>Option to show Y-axis on linear or log scale</li>
 <li>Theme for the plot (users should have at least FOUR options to choose from). These can either be built-in ggplot themes, or they can be from a different library of your choosing.</li>
 <li>Options for colors to use (this has been templated for you, with defaults - please choose your own defaults!). This is two widgets (one color widget for cases, one color widget for deaths)</li>
@@ -457,7 +449,7 @@ summary {
 <h3>Bonus opportunities</h3>
 <ul>
 <li>Submit early by 5/8/20 at 11:59 pm for an automatic extra 10%</li>
-<li>An option to display X-axis from the day with N infections rather than 100 day (the user picks N)</li>
+<li>An option to display X-axis from the day with N infections</li>
 <li>Instead of using default shiny widgets, use widgets associated with the library <a href="https://github.com/dreamRs/shinyWidgets">shinyWidgets</a></li>
 <li>Include a third tabPanel displaying a map of USA (using the NYT data) where states are colored by either cases or deaths. There should be an input option indicating whether cases or deaths should be displayed, and you can use whatever color scheme you want!</li>
 <li>Use the library <code>plotly</code> to make your plots interactive!</li>
