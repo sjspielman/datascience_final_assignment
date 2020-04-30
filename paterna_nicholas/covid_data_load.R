@@ -27,6 +27,11 @@ nyt_raw %>%
                names_to = "covid_type",
                values_to = "cumulative_number") -> nyt_data
 
+nyt_data %>%
+  mutate(cumulative_number = if_else(cumulative_number == 0,
+                                     1e-10,
+                                     cumulative_number)) -> nyt_data
+
 
 
 

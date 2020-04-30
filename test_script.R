@@ -1,3 +1,5 @@
+#DELETE BEFORE SUBMITTING
+
 nyt_data %>%
   filter(state == "Alabama") %>%
   group_by(date, covid_type) %>%
