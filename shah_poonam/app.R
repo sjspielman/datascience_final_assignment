@@ -58,7 +58,7 @@ ui <- shinyUI(
                     
                     # All output for NYT goes in here:
                     mainPanel(
-                        plotOutput("nyt_plot")
+                        plotOutput("nyt_plot", height = "400px")
                     ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function  
             ), # closes tabPanel for NYT data
             
@@ -125,7 +125,7 @@ server <- function(input, output, session) {
             myplot <- myplot + scale_y_log10()
         }
         #Dealing with input$facet_wrap
-        if(input$facet_county == "Yes") myplot <- myplot + facet_wrap(~county, scales = "free_y  gfuf")
+        if(input$facet_county == "Yes") myplot <- myplot + facet_wrap(~county, scales = "free_y")
         
         #dealing with the input$which_theme choice
         
