@@ -20,7 +20,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 # UI --------------------------------
 ui <- shinyUI(
         navbarPage( # theme = shinytheme("default"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
+                   title = "Worldwide Cases of Covid-19", 
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -29,7 +29,7 @@ ui <- shinyUI(
                     sidebarPanel(
                         
                         colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "red")
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "gold")
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
@@ -73,7 +73,17 @@ server <- function(input, output, session) {
     nyt_data_subset <- reactive({})
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$nyt_plot <- renderPlot({})
+    output$nyt_plot <- renderPlot({
+        nyt_data %>% 
+            filter(state=="Massachusetts") %>%
+            group_by(date,covid_type) %>%
+            summarize(total_county_day=sum(cumulative_number)) %>%
+            ggplot(aes(x=date, y=total_county_day, color=covid_type,group=covid_type))+
+            geom_point()+
+            geom_line()+
+            scale_color_manual(values=c(input$nyt_color_cases, input$nyt_color_deaths))+
+            labs(x="Date",y="Total Amount",color="Category")
+    })
     
     
     
