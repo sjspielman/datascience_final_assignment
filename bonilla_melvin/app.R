@@ -14,6 +14,7 @@ library(shinythemes)
 library(tidyverse)
 library(colourpicker)
 
+
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
 
@@ -29,7 +30,21 @@ ui <- shinyUI(
                     sidebarPanel(
                         
                         colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "gold")
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "purple"), 
+                        selectInput("which_state", ## input$which_state
+                                    "Select a State/U.S Terirtory",
+                                    choices=usa_states,
+                                    selected = "Massachusetts"),
+                        
+                        selectInput("y_scale", ## input$y_scale
+                                    "Select a Scale for Y-axis",
+                                    choices=c("Linear","Log"),
+                                    selected = "Linear"),
+                        
+                        selectInput("which_theme", ##input$which_theme
+                                    "Select a Theme to Use",
+                                    choices=c("Classic","Light","Dark","Minimal"),
+                                    selected = "Classic")
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
@@ -70,19 +85,40 @@ server <- function(input, output, session) {
     ## All server logic for NYT goes here ------------------------------------------
     
     ## Define a reactive for subsetting the NYT data
-    nyt_data_subset <- reactive({})
+    nyt_data_subset <- reactive({
+        nyt_data %>% 
+            filter(state==input$which_state) %>%
+            group_by(date,covid_type) %>%
+            summarize(total_county_day=sum(cumulative_number))
+        
+    })
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$nyt_plot <- renderPlot({
-        nyt_data %>% 
-            filter(state=="Massachusetts") %>%
-            group_by(date,covid_type) %>%
-            summarize(total_county_day=sum(cumulative_number)) %>%
+        nyt_data_subset() %>%
             ggplot(aes(x=date, y=total_county_day, color=covid_type,group=covid_type))+
             geom_point()+
             geom_line()+
             scale_color_manual(values=c(input$nyt_color_cases, input$nyt_color_deaths))+
-            labs(x="Date",y="Total Amount",color="Category")
+            labs(title=paste(input$which_state,"Cases and Deaths Over Time"))+
+            labs(x="Date",y="Total Amount",color="Category") ->Output_NYT
+       
+        ## Choice for Y-Scale
+         if (input$y_scale=="Log"){
+            Output_NYT<- Output_NYT + scale_y_log10()
+         }
+        
+        ## Choice for Theme
+        if (input$which_theme == "Classic") Output_NYT<- Output_NYT +theme_classic()
+        if (input$which_theme == "Light") Output_NYT<- Output_NYT +theme_light()
+        if (input$which_theme == "Dark") Output_NYT<- Output_NYT +theme_dark()
+        if (input$which_theme == "Minimal") Output_NYT<- Output_NYT +theme_minimal()
+    
+        
+        
+        #Returned Result
+        Output_NYT
+        
     })
     
     
