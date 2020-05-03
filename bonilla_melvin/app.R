@@ -20,7 +20,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage( # theme = shinytheme("default"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
+        navbarPage(theme = shinytheme("sandstone"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
                    title = "Worldwide Cases of Covid-19", 
             
             ## All UI for NYT goes in here:
