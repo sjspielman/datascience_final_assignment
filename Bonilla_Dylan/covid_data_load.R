@@ -20,6 +20,40 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 
 
 ## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
+nyt <- read_csv(nyt_usa_data_url)
+
+jhu_part1 <- read_csv(jhu_confirmed_global_url)
+
+jhu_part2 <- read_csv(jhu_deaths_global_url)
+
+##Preping of NYT Data Set
+##Necessary Columns for NYT Data
+    #date
+    #county
+    #state
+    #fips (this is a location code used by maps, stands for "Federal Information Processing Standard")
+    #covid_type (A categorical variable containing either "cases" or "deaths")
+    #cumulative_number (The number associated with covid_type)
+  
+nyt %>%
+  pivot_longer(cases:deaths,
+               names_to="covid_type",
+               values_to="cumulative_number")->nyt_data
+
+##Preping for JHU Data Set 
+
+##Necessary Columns for JHU Data
+    #province_or_state
+    #country_or_region
+    #latitude
+    #longitude
+    #date
+    #covid_type (A categorical variable containing either "cases" or "deaths")
+    #cumulative_number (The number associated with covid_type)
+    
+
+
+
 
 
 
