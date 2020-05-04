@@ -20,7 +20,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage(theme = shinytheme("sandstone"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
+        navbarPage(theme = shinytheme("sandstone"),
                    title = "Worldwide Cases of Covid-19", 
             
             ## All UI for NYT goes in here:
@@ -36,6 +36,11 @@ ui <- shinyUI(
                                     choices=usa_states,
                                     selected = "Massachusetts"),
                         
+                        radioButtons("facet_county",
+                                     "Display Counties for Selected State/Territory",
+                                     choices = c("No","Yes"),
+                                     selected = "No"),
+                        
                         selectInput("y_scale", ## input$y_scale
                                     "Select a Scale for Y-axis",
                                     choices=c("Linear","Log"),
@@ -50,7 +55,7 @@ ui <- shinyUI(
                     
                     # All output for NYT goes in here:
                     mainPanel(
-                        plotOutput("nyt_plot")
+                        plotOutput("nyt_plot",height="600px")
                     ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function  
             ), # closes tabPanel for NYT data
             
@@ -87,16 +92,25 @@ server <- function(input, output, session) {
     ## Define a reactive for subsetting the NYT data
     nyt_data_subset <- reactive({
         nyt_data %>% 
-            filter(state==input$which_state) %>%
+            filter(state==input$which_state)->nyt_state
+            
+        if(input$facet_county=="No"){
+        nyt_state %>%
             group_by(date,covid_type) %>%
-            summarize(total_county_day=sum(cumulative_number))
+            summarize(y=sum(cumulative_number))->final_nyt_state
         
-    })
+    }
+    if(input$facet_county=="Yes"){
+        nyt_state %>%
+            rename(y=cumulative_number)->final_nyt_state
+    }
+        final_nyt_state
+})
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$nyt_plot <- renderPlot({
         nyt_data_subset() %>%
-            ggplot(aes(x=date, y=total_county_day, color=covid_type,group=covid_type))+
+            ggplot(aes(x=date, y=y, color=covid_type,group=covid_type))+
             geom_point()+
             geom_line()+
             scale_color_manual(values=c(input$nyt_color_cases, input$nyt_color_deaths))+
@@ -114,7 +128,9 @@ server <- function(input, output, session) {
         if (input$which_theme == "Dark") Output_NYT<- Output_NYT +theme_dark()
         if (input$which_theme == "Minimal") Output_NYT<- Output_NYT +theme_minimal()
     
-        
+        ##Choice of facet by counties
+        if(input$facet_county=="Yes") Output_NYT<-Output_NYT+facet_wrap(~county, scales="free_y")+ 
+                theme(axis.text.x = element_text(angle = 90))
         
         #Returned Result
         Output_NYT
