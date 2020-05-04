@@ -66,14 +66,29 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "purple"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "orange")
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "#0064A6"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "black"),
+                         selectInput("which_country_jhu", 
+                                     "Select a Country/Region",
+                                     choices=world_countries_regions,
+                                     selected = "China"),
+                         
+                         
+                         selectInput("y_scale_jhu", 
+                                     "Select a Scale for Y-axis",
+                                     choices=c("Linear","Log"),
+                                     selected = "Linear"),
+                         
+                         selectInput("which_theme_jhu", 
+                                     "Select a Theme to Use",
+                                     choices=c("Classic","Light","Dark","Minimal"),
+                                     selected = "Classic")
                          
                      ), # closes JHU sidebarPanel     
                      
                      # All output for JHU goes in here:
                      mainPanel(
-                        plotOutput("jhu_plot")
+                        plotOutput("jhu_plot",height="600px")
                      ) # closes JHU mainPanel     
             ) # closes tabPanel for JHU data
     ) # closes navbarPage
@@ -144,10 +159,44 @@ server <- function(input, output, session) {
 
     
     ## Define a reactive for subsetting the JHU data
-    jhu_data_subset <- reactive({})
+    jhu_data_subset <- reactive({
+        jhu_data %>% 
+            filter(`Country/Region`==input$which_country_jhu) %>%
+            group_by(`Country/Region`,date,covid_type) %>%
+            summarize(y=sum(cumulative_number))->jhu_country
+            
+        jhu_country
+        
+    })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$jhu_plot <- renderPlot({})
+    output$jhu_plot <- renderPlot({
+        jhu_data_subset() %>%
+            ggplot(aes(x=date, y=y, color=covid_type,group=covid_type))+
+            geom_point()+
+            geom_line()+
+            scale_color_manual(values=c(input$jhu_color_cases, input$jhu_color_deaths))+
+            labs(title=paste(input$which_country_jhu,"Cases and Deaths Over Time"))+
+            labs(x="Date",y="Total Amount",color="Category") ->Output_JHU
+        
+        ## Choice for Y-Scale
+        if (input$y_scale_jhu=="Log"){
+            Output_JHU<- Output_JHU + scale_y_log10()
+        }
+        
+        ## Choice for Theme
+        if (input$which_theme_jhu == "Classic") Output_JHU<- Output_JHU +theme_classic()
+        if (input$which_theme_jhu == "Light") Output_JHU<- Output_JHU +theme_light()
+        if (input$which_theme_jhu == "Dark") Output_JHU<- Output_JHU +theme_dark()
+        if (input$which_theme_jhu == "Minimal") Output_JHU<- Output_JHU +theme_minimal()
+        
+    
+        
+        #Returned Result
+        Output_JHU
+        
+        
+        })
     
 }
 
