@@ -18,7 +18,6 @@ jhu_top_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master
 jhu_confirmed_global_url <- paste0(jhu_top_url, "time_series_covid19_confirmed_global.csv")
 jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_global.csv")
 
-
 ## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
 
 nyt_raw <- read_csv(nyt_usa_data_url)
@@ -27,5 +26,22 @@ nyt_raw %>%
 #nyt_raw was formated correctly for date,county, state, fips
 #only changes required were pivot longer in order to create a new column for covid_type and cumulative_number
 
+jhu_confirmed<- read_csv(jhu_confirmed_global_url)
+jhu_deaths <- read_csv(jhu_deaths_global_url)
+
+jhu_confirmed %>%
+  pivot_longer(cols = c(-`Province/State`,-`Country/Region`,-Lat,-Long),
+               names_to="date",values_to="cumulative_number") %>%
+  mutate(covid_type="cases") %>%
+  bind_rows(jhu_deaths %>% pivot_longer(cols = c(-`Province/State`,-`Country/Region`,-Lat,-Long),
+                                        names_to="date",values_to="cumulative_number")%>%
+              mutate(covid_type="deaths")) %>%
+  rename(Latitude=Lat) %>%
+  rename(Longitude=Long) %>%
+  mutate(date=mdy(date))->jhu_data
+
+
+
 
 # NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
+
