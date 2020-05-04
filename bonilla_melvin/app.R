@@ -31,22 +31,22 @@ ui <- shinyUI(
                         
                         colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
                         colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "purple"), 
-                        selectInput("which_state", ## input$which_state
+                        selectInput("which_state_nyt", ## input$which_state
                                     "Select a State/U.S Terirtory",
                                     choices=usa_states,
                                     selected = "Massachusetts"),
                         
-                        radioButtons("facet_county",
+                        radioButtons("facet_county_nyt",
                                      "Display Counties for Selected State/Territory",
                                      choices = c("No","Yes"),
                                      selected = "No"),
                         
-                        selectInput("y_scale", ## input$y_scale
+                        selectInput("y_scale_nyt", ## input$y_scale
                                     "Select a Scale for Y-axis",
                                     choices=c("Linear","Log"),
                                     selected = "Linear"),
                         
-                        selectInput("which_theme", ##input$which_theme
+                        selectInput("which_theme_nyt", ##input$which_theme
                                     "Select a Theme to Use",
                                     choices=c("Classic","Light","Dark","Minimal"),
                                     selected = "Classic")
@@ -92,15 +92,15 @@ server <- function(input, output, session) {
     ## Define a reactive for subsetting the NYT data
     nyt_data_subset <- reactive({
         nyt_data %>% 
-            filter(state==input$which_state)->nyt_state
+            filter(state==input$which_state_nyt)->nyt_state
             
-        if(input$facet_county=="No"){
+        if(input$facet_county_nyt=="No"){
         nyt_state %>%
             group_by(date,covid_type) %>%
             summarize(y=sum(cumulative_number))->final_nyt_state
         
     }
-    if(input$facet_county=="Yes"){
+    if(input$facet_county_nyt=="Yes"){
         nyt_state %>%
             rename(y=cumulative_number)->final_nyt_state
     }
@@ -114,22 +114,22 @@ server <- function(input, output, session) {
             geom_point()+
             geom_line()+
             scale_color_manual(values=c(input$nyt_color_cases, input$nyt_color_deaths))+
-            labs(title=paste(input$which_state,"Cases and Deaths Over Time"))+
+            labs(title=paste(input$which_state_nyt,"Cases and Deaths Over Time"))+
             labs(x="Date",y="Total Amount",color="Category") ->Output_NYT
        
         ## Choice for Y-Scale
-         if (input$y_scale=="Log"){
+         if (input$y_scale_nyt=="Log"){
             Output_NYT<- Output_NYT + scale_y_log10()
          }
         
         ## Choice for Theme
-        if (input$which_theme == "Classic") Output_NYT<- Output_NYT +theme_classic()
-        if (input$which_theme == "Light") Output_NYT<- Output_NYT +theme_light()
-        if (input$which_theme == "Dark") Output_NYT<- Output_NYT +theme_dark()
-        if (input$which_theme == "Minimal") Output_NYT<- Output_NYT +theme_minimal()
+        if (input$which_theme_nyt == "Classic") Output_NYT<- Output_NYT +theme_classic()
+        if (input$which_theme_nyt == "Light") Output_NYT<- Output_NYT +theme_light()
+        if (input$which_theme_nyt == "Dark") Output_NYT<- Output_NYT +theme_dark()
+        if (input$which_theme_nyt == "Minimal") Output_NYT<- Output_NYT +theme_minimal()
     
         ##Choice of facet by counties
-        if(input$facet_county=="Yes") Output_NYT<-Output_NYT+facet_wrap(~county, scales="free_y")+ 
+        if(input$facet_county_nyt=="Yes") Output_NYT<-Output_NYT+facet_wrap(~county, scales="free_y")+ 
                 theme(axis.text.x = element_text(angle = 90))
         
         #Returned Result
