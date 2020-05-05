@@ -19,8 +19,8 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage( # theme = shinytheme("default"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
+        navbarPage( theme = shinytheme("lumen"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
+                   title = "COVID-19 and its Affects Across the World", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -28,8 +28,35 @@ ui <- shinyUI(
                     # All user-provided input for NYT goes in here:
                     sidebarPanel(
                         
-                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "red")
+                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "Gold"),
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "Navy"),
+                        
+                        ##The above is the widget for selecting color
+                        selectizeInput("state_nyt",
+                                       "Which State?",
+                                       choices=usa_states,
+                                       selected="Florida"),
+                         ##The above is the widget selecting for state input$state_nyt
+                        
+                        radioButtons("faceting_nyt",
+                                     "Show Counties in the State as Seperate Graphs?",
+                                     choices=c("Yes","No"),
+                                     selected = "No"),
+                        ##The above is for the widget selecting for facet by county #input$faceting_nyt
+                        
+                        radioButtons("y_scale_nyt",
+                                     "Change Y-Scale to?",
+                                     choices=c("Linear","Log"),
+                                     selected = "Linear"),
+                        #The above is the widget for selecting for Y-scale #input$y_scale_nyt
+                        
+                        selectInput("theme_nyt",
+                                    "Select Theme",
+                                    choices=c("Gray","Light","Black and White","Minimal"),
+                                    selected = "Gray")
+                        #the above is the widget for selecting theme for graphs #input$theme_nyt
+                        
+                        
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
@@ -46,8 +73,27 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "purple"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "orange")
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "Red"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "Black"),
+                         ##The above is the widget for selecting color
+                         
+                         selectizeInput("country_jhu",
+                                        "Which State?",
+                                        choices=world_countries_regions,
+                                        selected="US"),
+                         ##The above is the widget selecting for state input$country_jhu
+                         
+                         radioButtons("y_scale_jhu",
+                                      "Change Y-Scale to?",
+                                      choices=c("Linear","Log"),
+                                      selected = "Linear"),
+                         #The above is the widget for selecting for Y-scale #input$y_scale_jhu
+                         
+                         selectInput("theme_jhu",
+                                     "Select Theme",
+                                     choices=c("Gray","Light","Black and White","Minimal"),
+                                     selected = "Gray")
+                         #the above is the widget for selecting theme for graphs #input$theme_jhu
                          
                      ), # closes JHU sidebarPanel     
                      
@@ -70,10 +116,61 @@ server <- function(input, output, session) {
     ## All server logic for NYT goes here ------------------------------------------
     
     ## Define a reactive for subsetting the NYT data
-    nyt_data_subset <- reactive({})
+    nyt_data_subset <- reactive({
+        nyt_data %>%
+            filter(state==input$state_nyt)->state
+        #the above uses the user input for their desire state, saves as varible
+        
+        if(input$faceting_nyt=="No"){
+            state %>%
+                group_by(date,covid_type) %>%
+                summarize(y=sum(cumulative_number)) ->final_state
+        #the above uses the user input for county, in the case for no it adds the sum of all the counties to give a state value    
+        }
+        
+        if(input$faceting_nyt=="Yes"){
+            state %>%
+                rename(y=cumulative_number) -> final_state
+        #the avoce uses the user input for county, in this case for yes it does not add up the county toals in a state keeping them seperate
+        }
+        
+        final_state
+        #of which ever input for county is selected the end result will always be final_state so that its is used in the output plot
+    })
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$nyt_plot <- renderPlot({})
+    output$nyt_plot <- renderPlot({
+        nyt_data_subset() %>%
+            ggplot(aes(x=date,
+                       y=y,
+                       color=covid_type,
+                       group=covid_type))+
+            geom_point()+
+            geom_line()+
+            scale_color_manual(values=c(input$nyt_color_cases,
+                                        input$nyt_color_deaths))+
+            labs(title="COVID-19 Data in the United States",
+                 x="Date",
+                 y="Count",
+                 color="Type")->plot_nyt
+            #the above gives the user the plot that will be used for the output
+        
+        if(input$y_scale_nyt=="Log"){
+            plot_nyt + scale_y_log10() -> plot_nyt
+        }
+             #the above adds the user input of choice of y-scale to the graph
+        
+        if(input$theme_nyt == "Gray") plot_nyt+theme_gray()-> plot_nyt
+        if(input$theme_nyt == "Light") plot_nyt+theme_light()-> plot_nyt
+        if(input$theme_nyt == "Minimal") plot_nyt+theme_minimal()-> plot_nyt
+        if(input$theme_nyt == "Black and White") plot_nyt+theme_bw()-> plot_nyt
+            #the above adds the user input of choice of theme to the plot varible for output
+        
+        if(input$faceting_nyt=="Yes") plot_nyt+facet_wrap(~county, scales="free_y")-> plot_nyt
+        #the above uses the user input if they want to see indiviudal counties of state by added facet_wrap(~county)
+        
+        plot_nyt
+    })
     
     
     

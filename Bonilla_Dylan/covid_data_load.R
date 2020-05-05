@@ -51,6 +51,26 @@ nyt %>%
     #covid_type (A categorical variable containing either "cases" or "deaths")
     #cumulative_number (The number associated with covid_type)
     
+jhu_part1 %>%
+  pivot_longer(cols = c(-`Province/State`,-`Country/Region`,-Lat,-Long),
+               names_to="date",
+               values_to="cumulative_number") %>%
+  mutate(covid_type="cases") %>%
+  mutate(date=mdy(date))-> jhu_cases
+
+
+jhu_part2 %>%
+  pivot_longer(cols = c(-`Province/State`,-`Country/Region`,-Lat,-Long),
+               names_to="date",
+               values_to="cumulative_number") %>%
+  mutate(covid_type="deaths") %>%
+  mutate(date=mdy(date))-> jhu_deaths
+#assigned the covid_type for each data set part as well as created values from columns
+
+jhu_cases %>%
+  bind_rows(jhu_deaths)-> jhu_data
+#combined the sets of data now that they have matching rows
+  
 
 
 
