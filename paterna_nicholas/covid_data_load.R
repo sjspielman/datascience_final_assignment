@@ -20,6 +20,9 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 
 ## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
 
+
+## NTY Data ----
+
 nyt_raw <- read_csv(nyt_usa_data_url)
 
 nyt_raw %>%
@@ -33,9 +36,34 @@ nyt_data %>%
                                      cumulative_number)) -> nyt_data
 
 
+## JHU Data ----
 
+jhu_confirmed_raw <- read_csv(jhu_confirmed_global_url)
+jhu_deaths_raw <- read_csv(jhu_deaths_global_url)
+## Reads in the datasets
 
+jhu_confirmed_raw %>%
+  pivot_longer(-c("Province/State", "Country/Region", "Lat", "Long"),
+               names_to = "date",
+               values_to = "cases") %>%
+  rename("province_or_state" = `Province/State`,
+         "country_or_region" = `Country/Region`,
+         "latitude" = Lat,
+         "longitude" = Long) -> jhu_cases
+## Tidying the case data
 
+jhu_deaths_raw %>%
+  pivot_longer(-c("Province/State", "Country/Region", "Lat", "Long"),
+               names_to = "date",
+               values_to = "deaths") %>%
+  rename("province_or_state" = `Province/State`,
+         "country_or_region" = `Country/Region`,
+         "latitude" = Lat,
+         "longitude" = Long) -> jhu_deaths
+## Tidying the death data
 
-# NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
-
+inner_join(jhu_cases, jhu_deaths) %>%
+  pivot_longer(cases:deaths,
+               names_to = "covid_type",
+               values_to = "cumulative_number") -> jhu_data
+## Joining the two tidied datasets then pivoting for cum col
