@@ -77,11 +77,11 @@ ui <- shinyUI(
                          colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "Black"),
                          ##The above is the widget for selecting color
                          
-                         selectizeInput("country_jhu",
-                                        "Which State?",
+                         selectizeInput("country",
+                                        "Which Country?",
                                         choices=world_countries_regions,
                                         selected="US"),
-                         ##The above is the widget selecting for state input$country_jhu
+                         ##The above is the widget selecting for state input$country
                          
                          radioButtons("y_scale_jhu",
                                       "Change Y-Scale to?",
@@ -179,10 +179,47 @@ server <- function(input, output, session) {
 
     
     ## Define a reactive for subsetting the JHU data
-    jhu_data_subset <- reactive({})
+    jhu_data_subset <- reactive({
+        jhu_data %>%
+            group_by(`Country/Region`,
+                     covid_type,
+                     date) %>%
+            filter(`Country/Region`==input$country) %>%
+            summarise(y=sum(cumulative_number))->country
+        country
+    })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$jhu_plot <- renderPlot({})
+    output$jhu_plot <- renderPlot({
+        jhu_data_subset() %>%
+            ggplot(aes(x=date,
+                       y=y,
+                       color=covid_type,
+                       group=covid_type))+
+            geom_point()+
+            geom_line()+
+            scale_color_manual(values=c(input$jhu_color_cases,
+                                        input$jhu_color_deaths))+
+            labs(title="COVID-19 Data Worldwide",
+                 x="Date",
+                 y="Count",
+                 color="Type")->plot_jhu
+        #the above gives the user the plot that will be used for the output JHU
+        
+        if(input$y_scale_jhu=="Log"){
+            plot_jhu + scale_y_log10() -> plot_jhu
+        }
+        #the above adds the user input of choice of y-scale to the graph
+        
+        if(input$theme_jhu == "Gray") plot_jhu+theme_gray()-> plot_jhu
+        if(input$theme_jhu == "Light") plot_jhu+theme_light()-> plot_jhu
+        if(input$theme_jhu == "Minimal") plot_jhu+theme_minimal()-> plot_jhu
+        if(input$theme_jhu == "Black and White") plot_jhu+theme_bw()-> plot_jhu
+        #the above adds the user input of choice of theme to the plot varible for output jhu
+        
+        plot_jhu
+        
+    })
     
 }
 
