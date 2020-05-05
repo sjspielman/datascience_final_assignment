@@ -21,6 +21,11 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 
 ## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
 
+nyt_raw <- read_csv(nyt_usa_data_url)
+
+nyt_raw %>%
+  pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number") -> nyt_data
+
 
 
 

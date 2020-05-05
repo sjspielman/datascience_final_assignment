@@ -19,8 +19,8 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage( # theme = shinytheme("default"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
+        navbarPage(theme = shinytheme("paper"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
+                   title = "Covid-19 Cumulative Case and Death Tracker", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -29,13 +29,27 @@ ui <- shinyUI(
                     sidebarPanel(
                         
                         colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "red")
-                        
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "red"),            ## Change these colors to your own
+                        selectInput("which_state",
+                                    "Which state's data would you like to see?",
+                                    choices = usa_states,
+                                    selected = "New Jersey"), ## input$which_state
+                        radioButtons("facet_county",
+                                     "Show results across county?",
+                                     choices = c("No", "Yes"),
+                                     selected = "No"),
+                        radioButtons("y_scale",
+                                     "Scale for Y-axis?",
+                                     choices = c("linear", "log")),
+                        selectInput("which_theme",
+                                    "Which visual theme would you like to use?",
+                                    choices = c("Classic", "Minimal", "Dark", "Gray"),
+                                    selected = "Classic")
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
                     # All output for NYT goes in here:
                     mainPanel(
-                        plotOutput("nyt_plot")
+                        plotOutput("nyt_plot", height = 600)
                     ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function  
             ), # closes tabPanel for NYT data
             
@@ -70,10 +84,49 @@ server <- function(input, output, session) {
     ## All server logic for NYT goes here ------------------------------------------
     
     ## Define a reactive for subsetting the NYT data
-    nyt_data_subset <- reactive({})
+    nyt_data_subset <- reactive({
+        nyt_data %>%
+            filter(state == input$which_state) -> nyt_state
+
+            if(input$facet_county == "No"){
+            nyt_state %>%
+            group_by(date, covid_type) %>%
+            summarize(y = sum(cumulative_number)) -> final_nyt_state
+            }
+        if(input$facet_county == "Yes"){
+            nyt_state %>%
+                rename(y = cumulative_number) -> final_nyt_state
+            
+            
+        }
+        final_nyt_state
+          })
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$nyt_plot <- renderPlot({})
+    output$nyt_plot <- renderPlot({
+       nyt_data_subset() %>%
+            ggplot(aes(x = date, y = y, color = covid_type, group = covid_type)) +
+            geom_point() +
+            geom_line() + 
+            scale_color_manual(values = c(input$nyt_color_cases, input$nyt_color_deaths)) +
+            labs(x = "Date", y = "Total Cumulative Count", title = paste(input$which_state, "Cases and Deaths")) -> myplot ## change size of axis text
+        ## Deal with input$y_scale choice
+       if (input$y_scale == "log") {
+           myplot <- myplot +scale_y_log10()
+       }
+        ## Deal with input$facet_county
+        if(input$facet_county == "Yes") myplot <- myplot +facet_wrap(~county)
+         
+        ## Deal with input$which_theme choice
+        if(input$which_theme == "Classic") myplot <- myplot + theme_classic()
+        if(input$which_theme == "Minimal") myplot <- myplot + theme_minimal()
+        if(input$which_theme == "Gray") myplot <- myplot + theme_gray()
+        if(input$which_theme == "Dark") myplot <- myplot + theme_dark()
+        
+    ## Return the plot to be plotted
+        myplot
+        ## Add custome font size and stuff AFTER themes
+         }) 
     
     
     
