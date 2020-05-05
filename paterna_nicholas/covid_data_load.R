@@ -68,7 +68,7 @@ inner_join(jhu_cases, jhu_deaths) %>%
                values_to = "cumulative_number") -> jhu_data
 ## Joining the two tidied datasets then pivoting for cum col
 
-jhu_data$date <- lubridate::as_date(jhu_data$date)
+jhu_data$date <- lubridate::mdy(jhu_data$date)
 ## Changing date col from a character to a date
 
 
