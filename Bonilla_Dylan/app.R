@@ -28,8 +28,12 @@ ui <- shinyUI(
                     # All user-provided input for NYT goes in here:
                     sidebarPanel(
                         
-                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "Gold"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "Navy"),
+                        colourpicker::colourInput("nyt_color_cases",
+                                                  "Color for plotting COVID cases:",
+                                                  value = "Gold"),
+                        colourpicker::colourInput("nyt_color_deaths", 
+                                                  "Color for plotting COVID deaths:",
+                                                  value = "Navy"),
                         
                         ##The above is the widget for selecting color
                         selectizeInput("state_nyt",
@@ -73,8 +77,12 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "Red"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "Black"),
+                         colourpicker::colourInput("jhu_color_cases", 
+                                                   "Color for plotting COVID cases:", 
+                                                   value = "Red"),
+                         colourpicker::colourInput("jhu_color_deaths", 
+                                                   "Color for plotting COVID deaths:", 
+                                                   value = "Black"),
                          ##The above is the widget for selecting color
                          
                          selectizeInput("country",
@@ -91,8 +99,8 @@ ui <- shinyUI(
                          
                          selectInput("theme_jhu",
                                      "Select Theme",
-                                     choices=c("Gray","Light","Black and White","Minimal"),
-                                     selected = "Gray")
+                                     choices=c("Light","Minimal","Black and White","Gray"),
+                                     selected = "Light")
                          #the above is the widget for selecting theme for graphs #input$theme_jhu
                          
                      ), # closes JHU sidebarPanel     
