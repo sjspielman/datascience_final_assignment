@@ -270,16 +270,33 @@ server <- function(input, output, session) {
 map_data_subset <- reactive({
     
     nyt_data %>%
-        filter(state == input$map_choice) -> final_map
+        mutate(COVID_scale = case_when(
+            
+            cumulative_number <= NO ~ "Low ()",
+            
+            cumulative_number > NO & cumulative_number <= NO ~ "Moderate ()",
+            
+            cumulative_number > NO ~ "High ()"  ))
     
+    
+    if (input$map_choice == "Cases"){
+        nyt_data %>%
+            filter(covid_type == "cases") -> final_map
+    }
+    
+    if (input$map_choice == "Deaths"){
+        nyt_data %>%
+            filter(covid_type == "deaths") -> final_map
+    }
+
     final_map
     
 })
 
 ## Define your renderPlot({}) for MAP panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$map_plot <- renderPlot({
-    map_data_subset() %>%
-        plot_usmap(values = "COVID_scale") +
+        map_data_subset() %>%
+        plot_usmap(regions = "states") +
         scale_fill_manual(values = c(
             input$map_case_color,
             input$map_death_color)) -> my_map_plot
