@@ -28,8 +28,8 @@ ui <- shinyUI(
                     # All user-provided input for NYT goes in here:
                     sidebarPanel(
                         
-                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "red"),            ## Change these colors to your own
+                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "gold3"),
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "firebrick4"),            ## Change these colors to your own
                         selectInput("which_state",
                                     "Which state's data would you like to see?",
                                     choices = usa_states,
@@ -60,9 +60,24 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "purple"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "orange")
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "blue2"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "black"),
                          
+                         selectInput("which_region",
+                                     "What country or region would you like to see?",
+                                     choices = world_countries_regions), ## input$which_region
+                         radioButtons("loglin",
+                                      "Scale for Y-axis?",
+                                      choices = c("Linear", "Log"),
+                                      selected = "Linear"),
+                         selectInput("month_facet",
+                                     "Would you like to display data by month?",
+                                     choices = c("No", "Yes"),
+                                     selected = "No"),
+                         selectInput("which_themejhu",
+                                     "Which visual theme would you like to use?",
+                                     choices = c("Classic", "Minimal", "Dark", "Gray"),
+                                     selected = "Classic")
                      ), # closes JHU sidebarPanel     
                      
                      # All output for JHU goes in here:
@@ -135,11 +150,40 @@ server <- function(input, output, session) {
 
     
     ## Define a reactive for subsetting the JHU data
-    jhu_data_subset <- reactive({})
+    jhu_data_subset <- reactive({
+        jhu_data %>%
+            filter(country_or_region == input$which_region) %>%
+            mutate(month = lubridate::month((date), label = TRUE)) -> jhu_region
+    
+        
+    })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$jhu_plot <- renderPlot({})
-    
+    output$jhu_plot <- renderPlot({
+        jhu_data_subset() %>%
+            ggplot(aes(x = date, y = cumulative_number, color = covid_type, group = covid_type)) +
+            geom_point() +
+            geom_line() +
+            scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) +
+            labs(x = "Date", y = "Total Cumulative Count") -> my_jhu_plot
+        ## Deal with input$loglin choice
+        if (input$loglin == "Log") {
+            my_jhu_plot <- my_jhu_plot +scale_y_log10()
+        }
+        
+        ## Deal with input$which_themejhu choice
+        if(input$which_themejhu == "Classic") my_jhu_plot <- my_jhu_plot + theme_classic()
+        if(input$which_themejhu == "Minimal") my_jhu_plot <- my_jhu_plot + theme_minimal()
+        if(input$which_themejhu == "Gray") my_jhu_plot <- my_jhu_plot + theme_gray()
+        if(input$which_themejhu == "Dark") my_jhu_plot <- my_jhu_plot + theme_dark()
+        
+        ## Deal with input$month_facet
+        if(input$month_facet == "Yes") my_jhu_plot <- my_jhu_plot + facet_wrap(~month)
+        
+        my_jhu_plot
+        
+    })
+ 
 }
 
 
