@@ -40,7 +40,7 @@ ui <- shinyUI(
                                      "Do you want to see all the Counties of this State individually or all pooled together?",
                                      choices = c("Individually", "Together"),
                                      selected = "Together"),
-                        radioButtons("y_scale",
+                        radioButtons("nyt_y_scale",
                                      "What scale do you want to see for the Y axis?",
                                      choices = c("Linear", "Log"),
                                      selected = "Linear"), #closes radio button
@@ -116,7 +116,7 @@ server <- function(input, output, session) {
                  title = paste(input$which_state, "cases and deaths")) -> myploot
         
     ##If they decided to use log    
-       if ( input$y_scale == "Log"){
+       if ( input$nyt_y_scale == "Log"){
            myploot <- myploot + scale_y_log10()
        } #closes if statement
     ##otherwise 

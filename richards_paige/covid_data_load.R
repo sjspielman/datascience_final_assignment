@@ -33,12 +33,41 @@ nyt_data %>%
 #covid_type (A categorical variable containing either “cases” or “deaths”) Needed to pivot_longer!
 #cumulative_number Need to pivot_longer!
 
-read_csv(jhu_confirmed_global_url) -> jhu_raw_glob
+read_csv(jhu_confirmed_global_url) -> jhu_raw_glob_confirm
 
-#province_or_state
-#country_or_region
-#latitude
-#longitude
+jhu_raw_glob_confirm %>%
+  dplyr::rename(country_or_region = `Country/Region`) %>% #ugh needed the backticks because of the forward slash in here!!
+  dplyr::rename(province_or_state = `Province/State`) %>%
+  dplyr::rename(latitude = Lat) %>%
+  dplyr::rename(longitude = Long) %>%
+  pivot_longer("1/22/20":"5/5/20", names_to = "date", values_to = "cumulative_number") %>%
+  mutate(covid_type = "cases") -> jhu_wrangled_confirm
+
+read_csv(jhu_deaths_global_url) -> jhu_raw_glob_deaths
+
+jhu_raw_glob_deaths %>%
+  dplyr::rename(country_or_region = `Country/Region`) %>%
+  dplyr::rename(province_or_state = `Province/State`) %>%
+  dplyr::rename(latitude = Lat) %>%
+  dplyr::rename(longitude = Long) %>%
+  pivot_longer("1/22/20":"5/5/20", names_to = "date", values_to = "cumulative_number") %>%
+  mutate(covid_type = "deaths") -> jhu_wrangled_deaths
+
+bind_rows(jhu_wrangled_confirm, jhu_wrangled_deaths) -> jhu_data #couldn't use left join. This worked because there are double the amount of rows than there was before
+
+jhu_data %>%
+  mutate(cumulative_number = if_else(cumulative_number == 0, 1e-10, cumulative_number)) -> jhu_data
+
+jhu_data %>%
+  mutate(date = str_replace_all(date,"/", "-")) %>% #lubridate would not recognize the / as a date so I needed to string replace all / with -
+  mutate(date = mdy(date)) -> jhu_data #needed to use mutate for this to work!
+
+
+
+#province_or_state: need to change the name
+#country_or_region: need to change name
+#latitude: need to change name
+#longitude need to change name
 #date Needs to be pivoted longer
 #covid_type (A categorical variable containing either “cases” or “deaths”)
 #cumulative_number (The number associated with covid_type)
