@@ -21,14 +21,38 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 
 ## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
 
+## Tidying NYT Data
 nyt_raw <- read_csv(nyt_usa_data_url)
 
 nyt_raw %>%
   pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number") -> nyt_data
 
+## Reading in JHU Data
+
 jhu_cases_raw <- read_csv(jhu_confirmed_global_url)
 jhu_deaths_raw <- read_csv(jhu_deaths_global_url)
 
+## Tidying JHU Data
+jhu_cases_raw %>%
+  pivot_longer('1/22/20':last_col(), names_to = "date", values_to = "cumulative_number") %>%
+  mutate("covid_type" = "cases") %>%
+  rename("province_or_state" = `Province/State`, 
+         "country_or_region" = `Country/Region`,
+         "latitude" = Lat,
+         "longitude" = Long) %>%
+  select(1:5, covid_type, cumulative_number) -> jhu_cases_tidy
+## I coded it from the first date to whatever the last column is, to avoid hardcoding in a date, as the data is constantly being updated and you want the most recent date. 
 
+jhu_deaths_raw %>%
+  pivot_longer('1/22/20':last_col(), names_to = "date", values_to = "cumulative_number") %>%
+  mutate("covid_type" = "deaths") %>%
+  rename("province_or_state" = `Province/State`, 
+         "country_or_region" = `Country/Region`,
+         "latitude" = Lat,
+         "longitude" = Long) %>%
+  select(1:5, covid_type, cumulative_number) -> jhu_deaths_tidy
 
-# NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
+bind_rows(jhu_cases_tidy, jhu_deaths_tidy) -> jhu_data
+  
+jhu_data$date <- lubridate::mdy(jhu_data$date)
+ 
