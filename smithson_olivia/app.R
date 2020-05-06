@@ -25,7 +25,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 # UI --------------------------------
 ui <- shinyUI(
         navbarPage(theme = shinytheme("journal"), 
-                   title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
+                   title = "COVID-19 Super Tracker", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -33,21 +33,21 @@ ui <- shinyUI(
                     # All user-provided input for NYT goes in here:
                     sidebarPanel(
                         
-                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "chartreuse"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "yellow"),
-                        selectInput("which_state",  ##input$which_state
+                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "cyan4"),
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "dodgerblue"),
+                        selectInput("which_state_nyt",  ##input$which_state
                                     "Select which state to plot:",
                                     choices = usa_states,
                                     selected = "New Jersey"), ##this sets the default value
-                        radioButtons("facet_county",
+                        radioButtons("facet_county_nyt",
                                      "Show counties across panels or pool all counties?",
                                      choices = c("Yes", "No"),
                                      selected = "No"),
-                        radioButtons("y_scale",
+                        radioButtons("y_scale_nyt",
                                     "Scale for Y-axis?",
                                     choices = c("Linear","Log"),
                                     selected = "Linear"),
-                        selectInput("which_theme",
+                        selectInput("which_theme_nyt",
                                     "Choose plot theme:",
                                     choices = c("Minimal", "Grey"),
                                     selected = "Minimal")
@@ -67,8 +67,8 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "purple"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "orange")
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "indianred2"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "sienna")
                          
                      ), # closes JHU sidebarPanel     
                      
@@ -93,15 +93,15 @@ server <- function(input, output, session) {
     ## Define a reactive for subsetting the NYT data
     nyt_data_subset <- reactive({
         nyt_data %>%
-            filter(state == input$which_state) -> nyt_state
+            filter(state == input$which_state_nyt) -> nyt_state
         
-        if (input$facet_county == "No"){
+        if (input$facet_county_nyt == "No"){
             ##combine county data to get single point per day for cases and deaths
             nyt_state %>%
                 group_by(date, covid_type) %>%
                 summarise(y = sum(cumulative_number)) -> final_nyt_state
             }
-        if (input$facet_county == "Yes"){
+        if (input$facet_county_nyt == "Yes"){
             nyt_state %>%
                 rename(y = cumulative_number) -> final_nyt_state
             }
@@ -120,19 +120,19 @@ server <- function(input, output, session) {
             geom_point() +
             geom_line() +
             scale_color_manual(values = c(input$nyt_color_cases, input$nyt_color_deaths)) +
-            labs(title = paste(input$which_state, "Cases and Deaths")) -> ny_subset_plot
+            labs(title = paste(input$which_state_nyt, "Cases and Deaths")) -> ny_subset_plot
         
         ##Corresponds to input$y_scale choice
-        if(input$y_scale == "Log") {
+        if(input$y_scale_nyt == "Log") {
             ny_subset_plot <- ny_subset_plot + scale_y_log10()
         }
     ##Corresponds to input$facet_county choice
-        if (input$facet_county == "Yes") nyt_subset_plot <- nyt_subset_plot + facet_wrap(~county)
+        if (input$facet_county_nyt == "Yes") nyt_subset_plot <- nyt_subset_plot + facet_wrap(~county)
     
     ##Corresponds to input$which_theme choice
     ##Watch capital letters for theme selection
-    if (input$which_theme == "Minimal") ny_subset_plot <- ny_subset_plot + theme_minimal()
-    if (input$which_theme == "Grey") ny_subset_plot <- ny_subset_plot + theme_grey()
+    if (input$which_theme_nyt == "Minimal") ny_subset_plot <- ny_subset_plot + theme_minimal()
+    if (input$which_theme_nyt == "Grey") ny_subset_plot <- ny_subset_plot + theme_grey()
     
     ###Return the plot to be plotted
     ny_subset_plot + theme(legend.position = "bottom")
