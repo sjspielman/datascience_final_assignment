@@ -6,6 +6,11 @@
 #
 #    http://shiny.rstudio.com/
 #
+########THINGS I STILL NEED TO DO:####
+# add a title in line 25
+# add jhu color picker options
+# delete the bottom comment on the covid R script
+# work on jhu data
 
 
 # Load all libraries ------------------------------------------------------------------------
@@ -19,7 +24,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage( # theme = shinytheme("default"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
+        navbarPage(theme = shinytheme("journal"), 
                    title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
@@ -28,8 +33,24 @@ ui <- shinyUI(
                     # All user-provided input for NYT goes in here:
                     sidebarPanel(
                         
-                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "red")
+                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "chartreuse"),
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "yellow"),
+                        selectInput("which_state",  ##input$which_state
+                                    "Select which state to plot:",
+                                    choices = usa_states,
+                                    selected = "New Jersey"), ##this sets the default value
+                        radioButtons("facet_county",
+                                     "Show counties across panels or pool all counties?",
+                                     choices = c("Yes", "No"),
+                                     selected = "No"),
+                        radioButtons("y_scale",
+                                    "Scale for Y-axis?",
+                                    choices = c("Linear","Log"),
+                                    selected = "Linear"),
+                        selectInput("which_theme",
+                                    "Choose plot theme:",
+                                    choices = c("Minimal", "Grey"),
+                                    selected = "Minimal")
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
@@ -70,19 +91,59 @@ server <- function(input, output, session) {
     ## All server logic for NYT goes here ------------------------------------------
     
     ## Define a reactive for subsetting the NYT data
-    nyt_data <- reactive({})
+    nyt_data_subset <- reactive({
+        nyt_data %>%
+            filter(state == input$which_state) -> nyt_state
+        
+        if (input$facet_county == "No"){
+            ##combine county data to get single point per day for cases and deaths
+            nyt_state %>%
+                group_by(date, covid_type) %>%
+                summarise(y = sum(cumulative_number)) -> final_nyt_state
+            }
+        if (input$facet_county == "Yes"){
+            nyt_state %>%
+                rename(y = cumulative_number) -> final_nyt_state
+            }
+        
+        final_nyt_state
+        
+    })
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    nyt_plot <- renderPlot({})
+    output$nyt_plot <- renderPlot({
+        nyt_data_subset() %>%
+            #filter(state == input$which_state) %>%
+            #group_by(date, county, covid_type) %>%
+            #summarize(total_county_day = sum(cumulative_number)) %>%
+            ggplot(aes(x = date, y = y, color = covid_type, group = covid_type)) +
+            geom_point() +
+            geom_line() +
+            scale_color_manual(values = c(input$nyt_color_cases, input$nyt_color_deaths)) +
+            labs(title = paste(input$which_state, "Cases and Deaths")) -> ny_subset_plot
+        
+        ##Corresponds to input$y_scale choice
+        if(input$y_scale == "Log") {
+            ny_subset_plot <- ny_subset_plot + scale_y_log10()
+        }
+    ##Corresponds to input$facet_county choice
+        if (input$facet_county == "Yes") nyt_subset_plot <- nyt_subset_plot + facet_wrap(~county)
     
+    ##Corresponds to input$which_theme choice
+    ##Watch capital letters for theme selection
+    if (input$which_theme == "Minimal") ny_subset_plot <- ny_subset_plot + theme_minimal()
+    if (input$which_theme == "Grey") ny_subset_plot <- ny_subset_plot + theme_grey()
     
+    ###Return the plot to be plotted
+    ny_subset_plot + theme(legend.position = "bottom")
     
+    })
     
     ## All server logic for JHU goes here ------------------------------------------
 
     
     ## Define a reactive for subsetting the JHU data
-    jhu_data <- reactive({})
+    jhu_data_subset <- reactive({})
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
     jhu_plot <- renderPlot({})
