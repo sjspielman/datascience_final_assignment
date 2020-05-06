@@ -4,4 +4,7 @@ nyt_data %>%
   summarise(total_county_day= sum(cumulative_number)) %>%
   ggplot(aes(x=date, y=total_county_day, color=covid_type, group=county)) +
   geom_point() +
-  geom_line()
+  geom_line() +
+  theme_grey()
+
+

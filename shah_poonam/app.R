@@ -51,8 +51,9 @@ ui <- shinyUI(
                         #Select box for chanigng the themes
                         selectInput("which_theme", # input$which_theme
                                     "Which ggplot theme to use?",
-                                    choices = c("Classic", "Minimal"),
+                                    choices = c("Classic", "Minimal", "Dark", "Light"),
                                     selected = "Classic")
+ 
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
@@ -132,7 +133,10 @@ server <- function(input, output, session) {
         if(input$which_theme == "Classic") myplot <- myplot + theme_classic()
         
         if(input$which_theme == "Minimal") myplot <- myplot + theme_minimal()
-            
+        
+        if(input$which_theme == "Dark") myplot <- myplot + theme_dark()  
+        
+        if(input$which_theme == "Light") myplot <- myplot + theme_light()
             
         #return the plot
         myplot + theme(legend.position = "bottom")
