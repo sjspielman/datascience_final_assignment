@@ -8,11 +8,12 @@
 #
 
 
-# Load all libraries ------------------------------------------------------------------------
+# Load all libraries --------------------
 library(shiny)
 library(shinythemes)
 library(tidyverse)
 library(colourpicker)
+library(usmap)
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
@@ -100,14 +101,43 @@ ui <- shinyUI(
                                         selected = "Classic")
                             
                         ), # closes JHU sidebarPanel     
-                        
                         # All output for JHU goes in here:
                         mainPanel(
                             plotOutput("jhu_plot", height = "500px")
                         ) # closes JHU mainPanel     
-               ) # closes tabPanel for JHU data
-    ) # closes navbarPage
-) # closes shinyUI
+                             ), # closes tabPanel for JHU data
+               
+               tabPanel("USA Map",
+                        sidebarPanel(
+                        
+                        colourpicker::colourInput("map_case_color",
+                                                  "Color for COVID Cases",
+                                                  value = "green"),
+                        colourpicker::colourInput("map_death_color",
+                                                  "Color for COVID Deaths",
+                                                  value = "blue"),
+                        
+                        selectInput("map_choice",
+                                    "Would you like to view cases or deaths?",
+                                    choices = c("Cases", "Deaths"),
+                                    selected = "Cases"),
+                        
+                        selectInput("map_theme",
+                                    "Choose a ggplot theme to use:",
+                                    choices = c("Black & White",
+                                                "Classic",
+                                                "Dark",
+                                                "Minimal"),
+                                    selected = "Classic")
+                       
+                         ), # Closes map sidebarPanel 
+                    
+                mainPanel(
+                    plotOutput("map_plot", height = "500px")
+                        ) # closes map mainPanel
+                    ) # Closes map tab
+                ) # closes navbarPage
+            ) # closes shinyUI
 
 # Server --------------------------------
 server <- function(input, output, session) {
@@ -232,6 +262,52 @@ server <- function(input, output, session) {
     })
     
 }
+
+
+## All server logic for MAP goes here -------------------------------------
+
+## Define a reactive for subsetting the MAP data
+map_data_subset <- reactive({
+    
+    nyt_data %>%
+        filter(state == input$map_choice) -> final_map
+    
+    final_map
+    
+})
+
+## Define your renderPlot({}) for MAP panel that plots the reactive variable. ALL PLOTTING logic goes here.
+    output$map_plot <- renderPlot({
+    map_data_subset() %>%
+        plot_usmap(values = "COVID_scale") +
+        scale_fill_manual(values = c(
+            input$map_case_color,
+            input$map_death_color)) -> my_map_plot
+    
+    ## Deal with input$map_choice
+    if (input$y_scale == "Log"){
+        myplot <- myplot + scale_y_log10()
+    }
+    
+    ### Deal with input$which_theme choice
+    if (input$map_theme == "Black & White") my_map_plot <- my_map_plot + theme_bw()
+    if (input$map_theme == "Classic") my_map_plot <- my_map_plot + theme_classic()
+    if (input$map_theme == "Dark") my_map_plot <- my_map_plot + theme_dark()
+    if (input$map_theme == "Minimal") my_map_plot <- my_map_plot + theme_minimal()
+    
+    ## Return the plot to be plotted
+    my_map_plot + theme(axis.text = element_text(size = 12),
+                   axis.title = element_text(size = 14,
+                                             face = "bold"),
+                   plot.title = element_text(size = 20,
+                                             face = "bold",
+                                             hjust = 0.5))
+})
+
+
+
+
+
 
 # Do not touch below this line! ----------------------------------
 shinyApp(ui = ui, server = server)
