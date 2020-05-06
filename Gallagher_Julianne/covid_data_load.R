@@ -25,40 +25,34 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 nyt_raw <- read_csv(nyt_usa_data_url)
 
 nyt_raw %>% 
-  pivot_longer(cases:deaths, names_to= "covid_type", values_to = "cumulative_number") -> nyt_data
-
-nyt_data %>%
+  pivot_longer(cases:deaths, names_to= "covid_type", values_to = "cumulative_number") %>%
   mutate(cumulative_number = cumulative_number + 1e-10) -> nyt_data
 
 ###-------------------------JHU Read and wrangle--------------------------------------###
-#Cases
+#JHU Cases
 jhu_confirmed_raw <- read_csv(jhu_confirmed_global_url)
 jhu_confirmed_raw %>% 
   mutate(covid_type = "cases") -> jhu_case
 
-#Deaths
+#JHU Deaths
 jhu_deaths_raw <- read_csv(jhu_deaths_global_url)
 jhu_deaths_raw %>%
   mutate(covid_type = "deaths") -> jhu_death_raw
 
-#Join
+#Join both datasets
 full_join(jhu_case, jhu_death) -> jhu_data_raw
 
 #Tidy
 jhu_data_raw %>% 
-  ### how do I make it so it includes dates as they update the data???
-  pivot_longer('1/22/20':'5/5/20', names_to= "date", values_to = "cumulative_number") %>% 
   #renaming columns
   rename("latitude" = "Lat") %>%
   rename("longitude" = "Long") %>%
   rename("province_or_state" = "Province/State") %>%
-  rename("country_or_region" = "Country/Region") -> jhu_data
+  rename("country_or_region" = "Country/Region") %>%
+  ### Pivot everything BUT the columns with subtraction sign
+  pivot_longer(c(-province_or_state, -country_or_region, -latitude, -longitude, -covid_type), names_to= "date", values_to = "cumulative_number") %>%
+  mutate(cumulative_number = cumulative_number + 1e-10,
+         date = lubridate::mdy(date))  -> jhu_data
 
-# y-axis 
-jhu_data %>%
- mutate(cumulative_number = cumulative_number + 1e-10) -> jhu_data
 
-###help I don't understand what's happening with dates
 
-#jhu_data$date <- date= mdy(date)
-#jhu_data$date <- lubridate::as_date(jhu_data$date)

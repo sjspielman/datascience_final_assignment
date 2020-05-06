@@ -20,7 +20,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 # UI --------------------------------
 ui <- shinyUI(
         navbarPage(theme = shinytheme("spacelab"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "Covid-19 App", ### Replace title with something reasonable
+                   title = "Covid-19 Cases & Deaths", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -46,7 +46,7 @@ ui <- shinyUI(
                                      choices = c("No", "Yes"),
                                      selected = "No"),
                         
-                        radioButtons("Start_100_jhu",
+                        radioButtons("Start_100_nyt",
                                      "Start on 100th case?",
                                      choices = c("Yes", "No"),
                                      selected = "No"),
@@ -54,7 +54,7 @@ ui <- shinyUI(
                         selectInput("which_theme_nyt", #input$which_theme_nyt
                                     "Which ggplot theme would you like to use?",
                                     choices = c("Classic", "Minimal", "Linedraw", "Dark"),
-                                    selected = "Classic")
+                                    selected = "Linedraw")
                         
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
@@ -78,7 +78,7 @@ ui <- shinyUI(
                          selectInput("which_country_region", #input$which_country_region
                                      "Which country or region would you like to plot?",
                                      choices = world_countries_regions,
-                                     selected = "Afghanistan"),
+                                     selected = "US"),
                          
                          radioButtons("y_scale_jhu",
                                       "Scale for Y-axis?",
@@ -93,13 +93,13 @@ ui <- shinyUI(
                          selectInput("which_theme_jhu", #input$which_theme_jhu
                                      "Which ggplot theme would you like to use?",
                                      choices = c("Classic", "Minimal", "Linedraw", "Dark"),
-                                     selected = "Classic")
+                                     selected = "Linedraw")
                          
                      ), # closes JHU sidebarPanel     
                      
                      # All output for JHU goes in here:
                      mainPanel(
-                        plotOutput("jhu_plot")
+                        plotOutput("jhu_plot", height = "700px")
                      ) # closes JHU mainPanel     
             ) # closes tabPanel for JHU data
     ) # closes navbarPage
@@ -120,14 +120,27 @@ server <- function(input, output, session) {
        nyt_data %>% 
                 filter(state == input$which_state) -> nyt_state
      
+      #Option to start x on 100th case 
+      if (input$Start_100_nyt == "No"){
+        nyt_state %>%
+          rename(x_nyt = date) -> final_nyt
+      }
+      if (input$Start_100_nyt == "Yes"){
+        nyt_state %>%
+          pivot_wider(names_from = covid_type, values_from = cumulative_number) %>% ## ONE ROW PER DATE
+          filter(cases >= 100) %>%
+          pivot_longer(c(cases, deaths), names_to = "covid_type", values_to = "cumulative_number") %>%
+          rename(x_nyt = date) -> final_nyt  
+      }
+      
     #option for faceting 
         if (input$facet_county == "No"){
-            nyt_state %>%
-                group_by(date, covid_type) %>% 
+            final_nyt %>%
+                group_by(x_nyt, covid_type) %>% 
                 summarise(y_nyt = sum(cumulative_number)) -> final_nyt_state
         }
         if (input$facet_county == "Yes"){
-            nyt_state %>% 
+            final_nyt %>% 
                 rename(y_nyt = cumulative_number) -> final_nyt_state
         }
         
@@ -137,7 +150,7 @@ server <- function(input, output, session) {
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
 output$nyt_plot <- renderPlot({
     nyt_data_subset() %>%
-            ggplot(aes(x = date, y= y_nyt, color= covid_type, group= covid_type)) + 
+            ggplot(aes(x = x_nyt, y= y_nyt, color= covid_type, group= covid_type)) + 
             geom_point() + 
             geom_line() +
             scale_color_manual(values = c(input$nyt_color_cases, input$nyt_color_deaths)) + 
@@ -175,48 +188,49 @@ jhu_data_subset <- reactive({
         filter(country_or_region == input$which_country_region) -> jhu_country
   
   #Option to start x on 100th case 
-      if (input$Start_100_jhu == "No"){
-        jhu_country %>% 
-          rename(x_jhu = date) -> final_jhu
-      }
-      if (input$Start_100_jhu == "Yes"){
-        jhu_country %>%
-          filter(covid_type >= 100) -> final_jhu
-      }
+   if (input$Start_100_jhu == "No"){
+     jhu_country %>%
+       rename(x_jhu = date) -> final_jhu
+   }
+   if (input$Start_100_jhu == "Yes"){
+
+     jhu_country %>%
+       pivot_wider(names_from = covid_type, values_from = cumulative_number) %>% ## ONE ROW PER DATE
+       filter(cases >= 100) %>%
+       pivot_longer(c(cases, deaths), names_to = "covid_type", values_to = "cumulative_number") %>%
+       rename(x_jhu = date) -> final_jhu
+
+     }
       
-      final_jhu
+  final_jhu
       
     })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
  output$jhu_plot <- renderPlot({
-    jhu_data_subset() %>% 
-     ggplot(aes(x = x_jhu, y= cumulative_number, color= covid_type, group= covid_type)) + 
-     geom_point() + 
+
+    jhu_data_subset() %>%
+     ggplot(aes(x = x_jhu, y= cumulative_number, color= covid_type, group= covid_type)) +
+     geom_point() +
      geom_line() +
-     scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) + 
+     scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) +
      labs(x = "Date", y= "Total Cumlative Count", color = "Covid Type", title= paste(input$which_country_region, "Cases and Deaths")) -> myplot_jhu
-      
+
       #Deal with input$y_scale choice
       if (input$y_scale_jhu == "Log"){
         myplot_jhu <- myplot_jhu + scale_y_log10()
       }
-      
+
       #Deal with input$which_theme choice
       if (input$which_theme_jhu == "Classic") myplot_jhu <- myplot_jhu + theme_classic()
       if (input$which_theme_jhu == "Minimal") myplot_jhu <- myplot_jhu + theme_minimal()
       if (input$which_theme_jhu == "Dark") myplot_jhu <- myplot_jhu + theme_dark()
-      if (input$which_theme_jhu == "Linedraw") myplot_jhu <- myplot_jhu + theme_linedraw() 
-      
-      #Return the plot
-      myplot_jhu + theme(legend.position = "bottom")
-      
+      if (input$which_theme_jhu == "Linedraw") myplot_jhu <- myplot_jhu + theme_linedraw()
+
+       #Return the plot
+       myplot_jhu + theme(legend.position = "bottom")
+       
     })
-    
-    
-     
-    
-    
     
 }
 
