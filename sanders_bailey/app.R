@@ -20,7 +20,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 # UI --------------------------------
 ui <- shinyUI(
         navbarPage(theme = shinytheme("paper"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "Covid-19 Cumulative Case and Death Tracker", ### Replace title with something reasonable
+                   title = "Covid-19 Cumulative Case and Death Tracker", 
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -140,7 +140,6 @@ server <- function(input, output, session) {
         
     ## Return the plot to be plotted
         myplot
-        ## Add custome font size and stuff AFTER themes
          }) 
     
     
