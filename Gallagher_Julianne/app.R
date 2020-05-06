@@ -28,14 +28,15 @@ ui <- shinyUI(
                     # All user-provided input for NYT goes in here:
                     sidebarPanel(
                         
-                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "red"),
+                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "B02AD1"),
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "10CC9D"),
+                        
                         selectInput("which_state", #input$which_state
                                     "Which state would you like to plot?",
                                     choices = usa_states,
                                     selected = "New Jersey"),
                         
-                        radioButtons("y_scale",
+                        radioButtons("y_scale_nyt",
                                      "Scale for Y-axis?",
                                      choices = c("Linear", "Log"),
                                      selected = "Linear"),
@@ -45,7 +46,12 @@ ui <- shinyUI(
                                      choices = c("No", "Yes"),
                                      selected = "No"),
                         
-                        selectInput("which_theme", #input$which_theme
+                        radioButtons("Start_100_jhu",
+                                     "Start on 100th case?",
+                                     choices = c("Yes", "No"),
+                                     selected = "No"),
+                        
+                        selectInput("which_theme_nyt", #input$which_theme_nyt
                                     "Which ggplot theme would you like to use?",
                                     choices = c("Classic", "Minimal", "Linedraw", "Dark"),
                                     selected = "Classic")
@@ -55,7 +61,7 @@ ui <- shinyUI(
                     
                     # All output for NYT goes in here:
                     mainPanel(
-                        plotOutput("nyt_plot", height = "1000px")
+                        plotOutput("nyt_plot", height = "700px")
                     ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function  
             ), # closes tabPanel for NYT data
             
@@ -66,8 +72,28 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "purple"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "orange")
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "12D3FA"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "6AD637"),
+                         
+                         selectInput("which_country_region", #input$which_country_region
+                                     "Which country or region would you like to plot?",
+                                     choices = world_countries_regions,
+                                     selected = "Afghanistan"),
+                         
+                         radioButtons("y_scale_jhu",
+                                      "Scale for Y-axis?",
+                                      choices = c("Linear", "Log"),
+                                      selected = "Linear"),
+                         
+                         radioButtons("Start_100_jhu",
+                                      "Start on 100th case?",
+                                      choices = c("Yes", "No"),
+                                      selected = "No"),
+                         
+                         selectInput("which_theme_jhu", #input$which_theme_jhu
+                                     "Which ggplot theme would you like to use?",
+                                     choices = c("Classic", "Minimal", "Linedraw", "Dark"),
+                                     selected = "Classic")
                          
                      ), # closes JHU sidebarPanel     
                      
@@ -88,20 +114,21 @@ server <- function(input, output, session) {
 
     
     ## All server logic for NYT goes here ------------------------------------------
-    
     ## Define a reactive for subsetting the NYT data
     nyt_data_subset <- reactive({
-            nyt_data %>% 
+    #choice for which state 
+       nyt_data %>% 
                 filter(state == input$which_state) -> nyt_state
      
+    #option for faceting 
         if (input$facet_county == "No"){
             nyt_state %>%
                 group_by(date, covid_type) %>% 
-                summarise(y = sum(cumulative_number)) -> final_nyt_state
+                summarise(y_nyt = sum(cumulative_number)) -> final_nyt_state
         }
         if (input$facet_county == "Yes"){
             nyt_state %>% 
-                rename(y = cumulative_number) -> final_nyt_state
+                rename(y_nyt = cumulative_number) -> final_nyt_state
         }
         
         final_nyt_state
@@ -110,28 +137,28 @@ server <- function(input, output, session) {
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
 output$nyt_plot <- renderPlot({
     nyt_data_subset() %>%
-            ggplot(aes(x = date, y= y, color= covid_type, group= covid_type)) + 
+            ggplot(aes(x = date, y= y_nyt, color= covid_type, group= covid_type)) + 
             geom_point() + 
             geom_line() +
-            scale_color_manual(values = c(input$nyt_color_cases, input$ nyt_color_deaths)) + 
-           labs(x = "Date", y= "Total Cumlative Count", color = "Covid Type", title= paste(input$which_state, "Cases and Deaths")) -> myplot
+            scale_color_manual(values = c(input$nyt_color_cases, input$nyt_color_deaths)) + 
+           labs(x = "Date", y= "Total Cumlative Count", color = "Covid Type", title= paste(input$which_state, "Cases and Deaths")) -> myplot_nyt
     
 #Deal with input$y_scale choice
-    if (input$y_scale == "Log"){
-        myplot <- myplot + scale_y_log10()   
+    if (input$y_scale_nyt == "Log"){
+        myplot_nyt <- myplot_nyt + scale_y_log10()   
     }
     
 #Deal with input$facet_county
-  if (input$facet_county == "Yes") myplot <- myplot + facet_wrap(~county)  
+  if (input$facet_county == "Yes") myplot_nyt <- myplot_nyt + facet_wrap(~county)  
     
 #Deal with input$which_theme choice
-    if (input$which_theme == "Classic") myplot <- myplot + theme_classic()
-    if (input$which_theme == "Minimal") myplot <- myplot + theme_minimal()
-    if (input$which_theme == "Dark") myplot <- myplot + theme_dark()
-    if (input$which_theme == "Linedraw") myplot <- myplot + theme_linedraw()
+    if (input$which_theme_nyt == "Classic") myplot_nyt <- myplot_nyt + theme_classic()
+    if (input$which_theme_nyt == "Minimal") myplot_nyt <- myplot_nyt + theme_minimal()
+    if (input$which_theme_nyt == "Dark") myplot_nyt <- myplot_nyt + theme_dark()
+    if (input$which_theme_nyt == "Linedraw") myplot_nyt <- myplot_nyt + theme_linedraw()
     
 #Return the plot
-    myplot + theme(legend.position = "bottom")
+    myplot_nyt + theme(legend.position = "bottom")
         
     })
     
@@ -142,10 +169,54 @@ output$nyt_plot <- renderPlot({
 
     
     ## Define a reactive for subsetting the JHU data
-    jhu_data_subset <- reactive({})
+jhu_data_subset <- reactive({
+  #Choice for which country or region 
+  jhu_data %>% 
+        filter(country_or_region == input$which_country_region) -> jhu_country
+  
+  #Option to start x on 100th case 
+      if (input$Start_100_jhu == "No"){
+        jhu_country %>% 
+          rename(x_jhu = date) -> final_jhu
+      }
+      if (input$Start_100_jhu == "Yes"){
+        jhu_country %>%
+          filter(covid_type >= 100) -> final_jhu
+      }
+      
+      final_jhu
+      
+    })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    jhu_plot <- renderPlot({})
+ output$jhu_plot <- renderPlot({
+    jhu_data_subset() %>% 
+     ggplot(aes(x = x_jhu, y= cumulative_number, color= covid_type, group= covid_type)) + 
+     geom_point() + 
+     geom_line() +
+     scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) + 
+     labs(x = "Date", y= "Total Cumlative Count", color = "Covid Type", title= paste(input$which_country_region, "Cases and Deaths")) -> myplot_jhu
+      
+      #Deal with input$y_scale choice
+      if (input$y_scale_jhu == "Log"){
+        myplot_jhu <- myplot_jhu + scale_y_log10()
+      }
+      
+      #Deal with input$which_theme choice
+      if (input$which_theme_jhu == "Classic") myplot_jhu <- myplot_jhu + theme_classic()
+      if (input$which_theme_jhu == "Minimal") myplot_jhu <- myplot_jhu + theme_minimal()
+      if (input$which_theme_jhu == "Dark") myplot_jhu <- myplot_jhu + theme_dark()
+      if (input$which_theme_jhu == "Linedraw") myplot_jhu <- myplot_jhu + theme_linedraw() 
+      
+      #Return the plot
+      myplot_jhu + theme(legend.position = "bottom")
+      
+    })
+    
+    
+     
+    
+    
     
 }
 

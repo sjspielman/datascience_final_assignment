@@ -21,6 +21,7 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 
 ## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
 
+###--------------------------NYT Read and wrangle------------------------------------###
 nyt_raw <- read_csv(nyt_usa_data_url)
 
 nyt_raw %>% 
@@ -29,4 +30,35 @@ nyt_raw %>%
 nyt_data %>%
   mutate(cumulative_number = cumulative_number + 1e-10) -> nyt_data
 
-# NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
+###-------------------------JHU Read and wrangle--------------------------------------###
+#Cases
+jhu_confirmed_raw <- read_csv(jhu_confirmed_global_url)
+jhu_confirmed_raw %>% 
+  mutate(covid_type = "cases") -> jhu_case
+
+#Deaths
+jhu_deaths_raw <- read_csv(jhu_deaths_global_url)
+jhu_deaths_raw %>%
+  mutate(covid_type = "deaths") -> jhu_death_raw
+
+#Join
+full_join(jhu_case, jhu_death) -> jhu_data_raw
+
+#Tidy
+jhu_data_raw %>% 
+  ### how do I make it so it includes dates as they update the data???
+  pivot_longer('1/22/20':'5/5/20', names_to= "date", values_to = "cumulative_number") %>% 
+  #renaming columns
+  rename("latitude" = "Lat") %>%
+  rename("longitude" = "Long") %>%
+  rename("province_or_state" = "Province/State") %>%
+  rename("country_or_region" = "Country/Region") -> jhu_data
+
+# y-axis 
+jhu_data %>%
+ mutate(cumulative_number = cumulative_number + 1e-10) -> jhu_data
+
+###help I don't understand what's happening with dates
+
+#jhu_data$date <- date= mdy(date)
+#jhu_data$date <- lubridate::as_date(jhu_data$date)
