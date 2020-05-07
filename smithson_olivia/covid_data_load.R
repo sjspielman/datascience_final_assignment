@@ -72,4 +72,17 @@ jhu_deaths %>%
                names_to = "date",
                values_to = "cumulative number") -> deaths_jhu
 
+##Now we combine the two dataframes
+#can use full join or bind rows, but I find binding rows to be easier
+#name it to the tibble name on rubric
+cases_jhu %>%
+  bind_rows(deaths_jhu) -> jhu_data_combined
+
+##tidy the combined JHU dataframe
+jhu_data_combined %>%
+  pivot_longer(c(-province_or_state, -country_or_region, -latitude, -longitude, -covid_type),
+               names_to = "date",
+               values_to = "cumulative number") -> jhu_data
+
+#recast date column
 
