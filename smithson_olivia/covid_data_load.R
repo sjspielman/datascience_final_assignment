@@ -31,13 +31,26 @@ nyt_raw %>%
 nyt_data %>%
   mutate(cumulative_number = if_else(cumulative_number == 0, 1e-10, cumulative_number)) -> nyt_data2
 
-##date
-##county
-##state
-##flips
-##covid_type
-##cumulative number
 
 ########## jhu_data ###################
+
+##Make one tibble with JHU data
+##Start with the confirmed data url first
+jhu_confirmed_raw <- read_csv(jhu_confirmed_global_url)
+
+##tidying of jhu_confirmed_raw
+jhu_confirmed_raw %>%
+  mutate(covid_type = "cases") %>%
+  rename(province_or_state = `Province/State`, 
+         country_or_region = `Country/Region`,
+         latitude =Lat,
+         longitude =Long) %>%
+  pivot_longer(cases:deaths, 
+               names_to = "date",
+               values_to = "cumulative number" -> confirmed
+               )
+  #pivot_longer(c(-province_or_state, -country_or_region, -latitude, -longitude, -covid_type),
+  #             names_to = "date",
+  #             values_to = "cumulative number") -> confirmed_jhu
 
 # NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!

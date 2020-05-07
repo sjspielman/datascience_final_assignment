@@ -120,22 +120,22 @@ server <- function(input, output, session) {
             geom_point() +
             geom_line() +
             scale_color_manual(values = c(input$nyt_color_cases, input$nyt_color_deaths)) +
-            labs(title = paste(input$which_state_nyt, "Cases and Deaths")) -> ny_subset_plot
+            labs(title = paste(input$which_state_nyt, "Cases and Deaths")) -> nyt_subset_plot
         
         ##Corresponds to input$y_scale choice
         if(input$y_scale_nyt == "Log") {
-            ny_subset_plot <- ny_subset_plot + scale_y_log10()
+            nyt_subset_plot <- nyt_subset_plot + scale_y_log10()
         }
     ##Corresponds to input$facet_county choice
         if (input$facet_county_nyt == "Yes") nyt_subset_plot <- nyt_subset_plot + facet_wrap(~county)
     
     ##Corresponds to input$which_theme choice
     ##Watch capital letters for theme selection
-    if (input$which_theme_nyt == "Minimal") ny_subset_plot <- ny_subset_plot + theme_minimal()
-    if (input$which_theme_nyt == "Grey") ny_subset_plot <- ny_subset_plot + theme_grey()
+    if (input$which_theme_nyt == "Minimal") nyt_subset_plot <- nyt_subset_plot + theme_minimal()
+    if (input$which_theme_nyt == "Grey") nyt_subset_plot <- nyt_subset_plot + theme_grey()
     
     ###Return the plot to be plotted
-    ny_subset_plot + theme(legend.position = "bottom")
+    nyt_subset_plot + theme(legend.position = "bottom")
     
     })
     
