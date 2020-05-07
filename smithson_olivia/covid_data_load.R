@@ -36,21 +36,40 @@ nyt_data %>%
 
 ##Make one tibble with JHU data
 ##Start with the confirmed data url first
+##Read in the data
 jhu_confirmed_raw <- read_csv(jhu_confirmed_global_url)
 
 ##tidying of jhu_confirmed_raw
 jhu_confirmed_raw %>%
+  #create a new column for cases 
   mutate(covid_type = "cases") %>%
+  #rename some column titles
   rename(province_or_state = `Province/State`, 
          country_or_region = `Country/Region`,
          latitude =Lat,
          longitude =Long) %>%
-  pivot_longer(cases:deaths, 
+  #maintain date accuracy
+  pivot_longer(c(-province_or_state, -country_or_region, -latitude, -longitude, -covid_type),
                names_to = "date",
-               values_to = "cumulative number" -> confirmed
-               )
-  #pivot_longer(c(-province_or_state, -country_or_region, -latitude, -longitude, -covid_type),
-  #             names_to = "date",
-  #             values_to = "cumulative number") -> confirmed_jhu
+               values_to = "cumulative number") -> cases_jhu
 
-# NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
+##Next is the data on number of deaths
+##Read in the data
+jhu_deaths <- read.csv(jhu_deaths_global_url)
+
+##tidying of the jhu_deaths
+jhu_deaths %>%
+  #create a new column for deaths
+  mutate(covid_type = "deaths") %>%
+  #rename some column titles
+  #Province and State, and Country and Region had slashes in between before, but now they are periods
+  rename(province_or_state = `Province.State`, 
+         country_or_region = `Country.Region`,
+         latitude =Lat,
+         longitude =Long) %>%
+  #maintain date accuracy - same as before!
+  pivot_longer(c(-province_or_state, -country_or_region, -latitude, -longitude, -covid_type),
+               names_to = "date",
+               values_to = "cumulative number") -> deaths_jhu
+
+
