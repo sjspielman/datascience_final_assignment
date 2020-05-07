@@ -45,6 +45,10 @@ ui <- shinyUI(
                                      "What scale do you want to see for the Y axis?",
                                      choices = c("Linear", "Log"),
                                      selected = "Linear"), #closes radio button
+                        numericInput("nyt_x_axis", 
+                                     "Where do you want to begin the graph in regards to a day with *N* number of infections? **Note, if you choose to see the counties individually, set N to a low number such as 1. You may get a warning if you set the number too high because counties may not have that high of a number of cases recorded at this moment.**", 
+                                     value = 1,
+                                     min = 1e-10), 
                         selectInput("which_theme_nyt",
                                     "What theme are you interested in seeing?",
                                     choices = themes_options,
@@ -100,8 +104,10 @@ server <- function(input, output, session) {
     ## All server logic for NYT goes here ------------------------------------------
     
     ## Define a reactive for subsetting the NYT data
-    nyt_data_subset <- reactive({nyt_data %>% #need to use this to make the data cleaner
+    nyt_data_subset <- reactive({
+        nyt_data %>% #need to use this to make the data cleaner
             filter(state == input$which_state) -> nyt_state
+
         
         if(input$facet_county == "Together"){
             nyt_state %>% #can't have lines going down. and pooled county data together
@@ -113,6 +119,12 @@ server <- function(input, output, session) {
             nyt_state %>%
                 rename(y = cumulative_number) -> final_nyt_state
         }
+        
+        final_nyt_state %>%
+            pivot_wider(names_from = covid_type, values_from = y) %>%
+            group_by(cases, deaths) %>%
+            filter(cases >= input$nyt_x_axis) %>%
+            pivot_longer(cases:deaths, names_to = "covid_type", values_to = "y") -> final_nyt_state
         
         final_nyt_state
         }) #this closes nyt_data_subset
