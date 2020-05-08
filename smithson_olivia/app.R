@@ -39,7 +39,7 @@ ui <- shinyUI(
                                     choices = usa_states,
                                     selected = "New Jersey"), ##this sets the default value
                         radioButtons("facet_county_nyt",
-                                     "Show counties across panels or pool all counties?",
+                                     "Show counties across panels?",
                                      choices = c("Yes", "No"),
                                      selected = "No"),
                         radioButtons("y_scale_nyt",
@@ -68,6 +68,15 @@ ui <- shinyUI(
 
                          colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "orange2"),
                          colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "mediumvioletred"),
+                         selectInput("which_co_reg",  ##input$which_co_reg
+                                     "Select which country or region to plot:",
+                                     choices = world_countries_regions,
+                                     selected = "Germany"), #default value for country
+                         radioButtons("facet_prov_st",
+                                      "Show by province or state (if applicable)?",
+                                      choices = c("Yes", "No"),
+                                      selected = "No"),
+                         ####MIGHT GET ERROR WITH NA's#######################
                          radioButtons("y_scale_jhu",
                                       "Scale for Y-axis?",
                                       choices = c("Linear","Log"),
@@ -192,6 +201,9 @@ server <- function(input, output, session) {
             scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) +
             labs(title = paste(input$which_co_reg, "Cases and Deaths")) -> jhu_subset_plot
        
+        
+        ##Corresponds to input$facet_county choice
+        if (input$facet_prov_st == "Yes") jhu_subset_plot <- jhu_subset_plot + facet_wrap(~province_or_state)
         
         ##Corresponds to input$y_scale_jhu
         if(input$y_scale_jhu == "Log") {
