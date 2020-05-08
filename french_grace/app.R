@@ -146,8 +146,6 @@ server <- function(input, output, session) {
         ##return to the plot
         my_nyt_plot + theme(legend.position = "right")
         
-        
-        
     })
     
     
@@ -160,41 +158,33 @@ server <- function(input, output, session) {
     
     ## Define a reactive for subsetting the JHU data
     jhu_data_subset <- reactive({
-        jhu_data %>%
-            filter(Country_or_Region == input$which_Country_or_Region) -> jhu_country
-    
-        if (input$facet_Country_or_Region == "Pool all Countries"){
-            ##combine all countries data to get a single point per day for cases and deaths
-            jhu_country %>%
-                group_by(date, covid_type) %>%
-                summarize(y = sum(cummulative_number)) -> final_jhu_country
-        }
-    })
-    
-   
+      jhu_data %>%
+        filter(Country_or_Region == input$which_Country_or_Region) -> jhu_country })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$jhu_plot <- renderPlot({
         jhu_data_subset() %>%
-            ggplot(aes(x = date, y = y, color = covid_type, group = covid_type))+
+            ggplot(aes(x = Date, y = Cumulative_Number, color = Covid_Type, group = Covid_Type))+
             geom_point()+
             geom_line()+
             scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths))+
             labs(title = paste(input$which_Country_or_Region, "Cases and Deaths", y = "Cumulative Count", x = "date"))+
             guides(col = guide_legend("Covid Type")) -> my_jhu_plot
-        
-        ##Input$y_scale choices
-        if(input$y_scale == "Log")my_jhu_plot <- my_jhu_plot + scale_y_log10()
-        
+      
+      ##Input$y_scale choices
+      if(input$y_scale == "Log") my_jhu_plot <- my_jhut_plot + scale_y_log10()
         
         ##with input$which_theme choices
-        if (input$which_theme == "Classic") my_nyt_plot <- my_jhu_plot + theme_classic()
-        if (input$which_theme == "Minimal") my_nyt_plot <- my_jhu_plot + theme_minimal()
-        if (input$which_theme == "Light") my_nyt_plot <- my_jhu_plot + theme_light()
-        if (input$which_theme == "Gray") my_nyt_plot <- my_jhu_plot + theme_gray()
-        if (input$which_theme == "Linedraw") my_nyt_plot <- my_jhu_plot + theme_linedraw()
-        if (input$which_theme == "Dark") my_nyt_plot <- my_jhu_plot + theme_dark()
+        if (input$which_theme == "Classic") my_jhu_plot <- my_jhu_plot + theme_classic()
+        if (input$which_theme == "Minimal") my_jhu_plot <- my_jhu_plot + theme_minimal()
+        if (input$which_theme == "Light") my_jhu_plot <- my_jhu_plot + theme_light()
+        if (input$which_theme == "Gray") my_jhu_plot <- my_jhu_plot + theme_gray()
+        if (input$which_theme == "Linedraw") my_jhu_plot <- my_jhu_plot + theme_linedraw()
+        if (input$which_theme == "Dark") my_jhu_plot <- my_jhu_plot + theme_dark()
         
+        
+        ##return to the plot
+        my_jhu_plot + theme(legend.position = "right")
         
     })
     
