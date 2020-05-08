@@ -20,7 +20,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 # UI --------------------------------
 ui <- shinyUI(
         navbarPage(  theme = shinytheme("cyborg"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "Making life SHINY!", ### Replace title with something reasonable
+                   title = "Covid-19 tests displayed as Shiny!", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -77,8 +77,8 @@ ui <- shinyUI(
                           selectInput("which_theme_jhu", ## need a diff name for the widget
                                       "which ggplot theme?",
                                       ##need 4 choices
-                                      choices = c("Classic", "BW","Light","Dark"),
-                                      selected = ("Classic"))
+                                      choices = c("Grey", "LineDraw","Minimal","Test"),
+                                      selected = ("Grey"))
                          # 
                      ), # closes JHU sidebarPanel     
                      
@@ -168,9 +168,10 @@ server <- function(input, output, session) {
     output$jhu_plot <- renderPlot({
       jhu_data_subset() %>%
         ggplot(aes(x = date, y= cumulative_number, color = covid_type,group = covid_type))+
+        ## make a bar plot
         geom_bar(position = "stack", stat = "identity")+
         scale_color_manual(values =c(input$jhu_color_cases,input$jhu_color_deaths))+
-        labs(title = paste(input$which_country,"cases and deaths")) ->jhuplot
+        labs(title = paste(input$which_country_or_region,"cases and deaths")) ->jhuplot
       
       ## for scale choices
       if(input$y_scale_jhu == "Log"){
@@ -178,12 +179,12 @@ server <- function(input, output, session) {
       }
       
       ## for theme choices
-      if(input$which_theme_jhu == "Classic") jhuplot <- jhuplot +theme_classic()
-      if(input$which_theme_jhu == "BW") jhuplot <- jhuplot +theme_bw()
-      if(input$which_theme_jhu == "Light") jhuplot <- jhuplot +theme_light()
-      if(input$which_theme_jhu == "Dark") jhuplot <- jhuplot +theme_dark()
+      if(input$which_theme_jhu == "Grey") jhuplot <- jhuplot +theme_grey()
+      if(input$which_theme_jhu == "LineDraw") jhuplot <- jhuplot +theme_linedraw()
+      if(input$which_theme_jhu == "Minimal") jhuplot <- jhuplot +theme_minimal()
+      if(input$which_theme_jhu == "Test") jhuplot <- jhuplot +theme_test()
       
-      
+    
                                                   ## use axis.text to adjust the labels on the x axis
       jhuplot + theme(legend.position = "bottom",axis.text.x = element_text(angle = 45,hjust = 1))
       
