@@ -14,6 +14,7 @@ library(shinythemes)
 library(tidyverse)
 library(colourpicker)
 library(ggthemr)
+library(plotly)
 themes_options <- c("Flat", "Sky", "Classic", "Chalk", "Dust", "Minimal", "Lilac", "Grey", "Sea", "Black and White", "Copper", "Dark", "Grass", "Light", "Camoflauge")
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
@@ -57,7 +58,7 @@ ui <- shinyUI(
                     
                     # All output for NYT goes in here:
                     mainPanel(
-                        plotOutput("nyt_plot", height = "700px") #closes plotOutput
+                        plotlyOutput("nyt_plot", height = "700px", width = "900px") #closes plotOutput
                     ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function
                     
             ), # closes tabPanel for NYT data
@@ -74,7 +75,7 @@ ui <- shinyUI(
                          selectInput("which_country", ## input$which_country,
                                      "What Country or Region would you like to see COVID-19 data for?",
                                      choices = world_countries_regions,
-                                     selected = "Thailand"),
+                                     selected = "Australia"),
                          radioButtons("facet_province", #input$facet_province
                                       "Do you want to see all the Provinces or States of your chosen Country individually or all pooled together? **Please note that many places do not have specific information for a Province or State, so the plot may not change at all.**",
                                       choices = c("Individually", "Together"),
@@ -95,7 +96,7 @@ ui <- shinyUI(
                      
                      # All output for JHU goes in here:
                      mainPanel(
-                        plotOutput("jhu_plot")
+                        plotlyOutput("jhu_plot", height = "700px", width = "900px")
                      ) # closes JHU mainPanel     
             ) # closes tabPanel for JHU data
     ) # closes navbarPage
@@ -138,7 +139,7 @@ server <- function(input, output, session) {
         }) #this closes nyt_data_subset
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$nyt_plot <- renderPlot({
+    output$nyt_plot <- renderPlotly({
         nyt_data_subset() %>%
             ggplot(aes(x = date, y = y, color = covid_type, group = covid_type)) +
                 geom_point() +
@@ -175,11 +176,14 @@ server <- function(input, output, session) {
      
      ##facet for counties
      if (input$facet_county == "Individually"){ 
-         myploot <- myploot + facet_wrap(~county, scales = "free") + theme(panel.spacing.x = unit(6, "mm")) + theme(axis.text = element_text(size = 8), plot.title = element_text(size = 30), legend.text = element_text(size = 12), legend.title = element_text(size = 15), axis.title = element_text(size = 15))
+         myploot <- myploot + facet_wrap(~county, scales = "free") + theme(axis.text = element_text(size = 6), plot.title = element_text(size = 20), legend.text = element_text(size = 10), axis.title = element_text(size = 15))
      } else {
-         myploot <- myploot + theme(axis.title = element_text(size = 20), axis.text = element_text(size = 15), plot.title = element_text(size = 30), legend.text = element_text(size = 15), legend.title = element_text(size = 20)) #need to have the myploot <- my ploot + to make it work!
+         myploot <- myploot + theme(axis.title = element_text(size = 15), axis.text = element_text(size = 10), plot.title = element_text(size = 20), legend.text = element_text(size = 10)) #need to have the myploot <- my ploot + to make it work!
      }
-    myploot
+print(
+    ggplotly(
+        myploot + theme(legend.title = element_blank()))) %>% #unfortunately I had to remove the legend title because plotly was cutting it off. I couldn't find a way to add it so that it would not cut off
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
         
     }) #closes render plot
  
@@ -215,8 +219,8 @@ server <- function(input, output, session) {
     }) #closes reactive
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$jhu_plot <- renderPlot({
-        jhu_data_subset() %>%
+    output$jhu_plot <- renderPlotly({
+            jhu_data_subset() %>%
             ggplot(aes(x = date, y = y, color = covid_type, group = covid_type)) +
             geom_point() +
             geom_line() +
@@ -251,12 +255,15 @@ server <- function(input, output, session) {
         
         ##facet for states and provinces
         if (input$facet_province == "Individually"){ 
-            jhu_my_ploot <- jhu_my_ploot + facet_wrap(~province_or_state, scales = "free") + theme(panel.spacing.x = unit(6, "mm")) + theme(axis.text = element_text(size = 8), plot.title = element_text(size = 30), legend.text = element_text(size = 12), legend.title = element_text(size = 15), axis.title = element_text(size = 15))
+            jhu_my_ploot <- jhu_my_ploot + facet_wrap(~province_or_state, scales = "free") + theme(panel.spacing.x = unit(8, "mm")) + theme(axis.text = element_text(size = 8), plot.title = element_text(size = 20), legend.text = element_text(size = 10), axis.title = element_text(size = 15))
         } else {
-            jhu_my_ploot <- jhu_my_ploot + theme(axis.title = element_text(size = 20), axis.text = element_text(size = 15), plot.title = element_text(size = 30), legend.text = element_text(size = 15), legend.title = element_text(size = 20))
+            jhu_my_ploot <- jhu_my_ploot + theme(axis.title = element_text(size = 15), axis.text = element_text(size = 10), plot.title = element_text(size = 20), legend.text = element_text(size = 10))
         }
-        
-        jhu_my_ploot #need to put this show something shows up
+print(
+    ggplotly(
+        jhu_my_ploot + theme(legend.title = element_blank()))) %>%
+            layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+        #need to put this show something shows up
     }) #closes renderPlot
     
 }
