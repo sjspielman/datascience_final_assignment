@@ -22,33 +22,32 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 
 ## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
 
-nyt_usa <- read.csv(nyt_usa_data_url)
+nyt_usa <- read_csv(nyt_usa_data_url)
 nyt_usa %>%
-  pivot_longer(cases:deaths, names_to = "covid_type",values_to = "cumulative_number")-> nyt_data
+   pivot_longer(cases:deaths, names_to = "covid_type",values_to = "cumulative_number")-> nyt_data
 
 ## TIDY the JHU to make 1 tibble
 jhu_confirmed <- read.csv(jhu_confirmed_global_url)
 
 ## tidy the jhu_confirmed
- jhu_confirmed %>%
+jhu_confirmed %>%
    rename(province_or_state = Province.State,country_or_region = Country.Region,
           latitude = Lat,longitude = Long) %>%
-    ## make a cases column
+   ## make a cases column
    mutate(covid_type = "cases") %>%
    pivot_longer(X1.22.20:X5.5.20, names_to = "date",values_to = "cumulative_number") ->confirmed
 
 
 jhu_deaths <- read.csv(jhu_deaths_global_url)
- 
- jhu_deaths %>%
+
+jhu_deaths %>%
    rename(province_or_state = Province.State,country_or_region = Country.Region,
           latitude = Lat,longitude = Long) %>%
-    ## make a deaths columns
+   ## make a deaths columns
    mutate(covid_type = "deaths") %>%
    pivot_longer(X1.22.20:X5.5.20, names_to = "date",values_to = "cumulative_number")->deaths
 
 confirmed %>%
-  bind_rows(deaths) -> jhu_data
-
+   bind_rows(deaths) -> jhu_data
 
 
