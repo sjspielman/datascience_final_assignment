@@ -218,11 +218,12 @@ server <- function(input, output, session) {
         if (input$which_theme_jhu == "Linedraw") jhu_subset_plot <- jhu_subset_plot + theme_linedraw()
         
         
-        
+        ###Return the plot to be plotted
+        jhu_subset_plot + theme(legend.position = "bottom")
         
     })
     
-}
+}  ##This closes the server in line 101!
 
 
 
