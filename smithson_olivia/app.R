@@ -121,10 +121,14 @@ server <- function(input, output, session) {
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$nyt_plot <- renderPlot({
         nyt_data_subset() %>%
+            #Tried following 3 comment lines but they did not work:
             #filter(state == input$which_state) %>%
             #group_by(date, county, covid_type) %>%
             #summarize(total_county_day = sum(cumulative_number)) %>%
+            #
+            #THIS is the correct way
             ggplot(aes(x = date, y = y, color = covid_type, group = covid_type)) +
+            #line graph
             geom_point() +
             geom_line() +
             scale_color_manual(values = c(input$nyt_color_cases, input$nyt_color_deaths)) +
@@ -156,6 +160,8 @@ server <- function(input, output, session) {
     ## Define a reactive for subsetting the JHU data
     jhu_data_subset <- reactive({
         jhu_data %>%
+            ##main category is country or region
+            ##we can facet by province or state later
             filter(country_or_region == input$which_co_reg) -> jhu_co_reg
         
         if (input$facet_prov_st == "No"){
@@ -172,20 +178,20 @@ server <- function(input, output, session) {
         final_co_reg 
         
     })
-     ###### NOT DONE YET, don't know if I should include province or state too???#####
-        
-        
-        
-        
-        
-        
-  
+    
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
     jhu_plot <- renderPlot({
-        
-        ####finish plot here#################################
-        
+        jhu_data_subset() %>%
+            #we already defined y in our reactive, so we can use it as our y-axis
+            #group and color by similar things to NYT data
+            ggplot(aes(x = date, y = y, color = covid_type, group = covid_type)) +
+            #line graph
+            geom_point() +
+            geom_line() +
+            scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) +
+            labs(title = paste(input$which_co_reg, "Cases and Deaths")) -> jhu_subset_plot
+       
         
         ##Corresponds to input$y_scale_jhu
         if(input$y_scale_jhu == "Log") {
