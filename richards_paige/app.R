@@ -57,7 +57,7 @@ ui <- shinyUI(
                     
                     # All output for NYT goes in here:
                     mainPanel(
-                        plotOutput("nyt_plot") #closes plotOutput
+                        plotOutput("nyt_plot", width = "1000px", height = "1000px") #closes plotOutput
                     ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function
                     
             ), # closes tabPanel for NYT data
@@ -79,6 +79,10 @@ ui <- shinyUI(
                                       "Do you want to see all the Provinces or States of your chosen Country individually or all pooled together? **Please note that many places do not have specific information for a Province or State, so the plot may not change at all.**",
                                       choices = c("Individually", "Together"),
                                       selected = "Together"),
+                         numericInput("jhu_x_axis", #input$jhu_x_axis
+                                      "Where do you want to begin the graph in regards to a day with *N* number of infections? **Note, set N to a low number, at first, such as 1. You may get a warning if you set the number too high because some countries or specific provinces may not have that high of a number of cases recorded at this moment.**", 
+                                      value = 1,
+                                      min = 1e-10),
                          radioButtons("jhu_y_scale", #input$jhu_y_scale
                                       "What type of scale do you want to see for the Y axis?",
                                       choices = c("Linear", "Log"),
@@ -198,6 +202,13 @@ server <- function(input, output, session) {
             jhu_country %>%
                 rename(y = cumulative_number) -> final_jhu_country
         }
+        
+        
+        final_jhu_country %>%
+            pivot_wider(names_from = covid_type, values_from = y) %>%
+            group_by(cases, deaths) %>%
+            filter(cases >= input$jhu_x_axis) %>%
+            pivot_longer(cases:deaths, names_to = "covid_type", values_to = "y") -> final_jhu_country
         
         final_jhu_country
     }) #closes reactive
