@@ -156,7 +156,22 @@ server <- function(input, output, session) {
     ## Define a reactive for subsetting the JHU data
     jhu_data_subset <- reactive({
         jhu_data %>%
-            filter(state == input$which_co_reg) -> jhu_co_reg
+            filter(country_or_region == input$which_co_reg) -> jhu_co_reg
+        
+        if (input$facet_prov_st == "No"){
+            ##combine province and state data to get single point per day for cases and deaths
+            jhu_co_reg %>%
+                group_by(date, covid_type) %>%
+                summarise(y = sum(cumulative_number)) -> final_co_reg
+        }
+        if (input$facet_prov_st == "Yes"){
+            jhu_co_reg %>%
+                rename(y = cumulative_number) -> final_co_reg
+        }
+        
+        final_co_reg 
+        
+    })
      ###### NOT DONE YET, don't know if I should include province or state too???#####
         
         
@@ -164,11 +179,11 @@ server <- function(input, output, session) {
         
         
         
-    })
+  
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
     jhu_plot <- renderPlot({
-        jhu_subset_plot
+        
         ####finish plot here#################################
         
         
