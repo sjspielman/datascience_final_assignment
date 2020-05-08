@@ -85,4 +85,4 @@ jhu_data_combined %>%
                values_to = "cumulative number") -> jhu_data
 
 #recast date column
-
+jhu_data$date <- lubridate::mdy(jhu_data$date)
