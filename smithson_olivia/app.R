@@ -7,7 +7,6 @@
 #    http://shiny.rstudio.com/
 #
 ########THINGS I STILL NEED TO DO:####
-# add a title in line 25
 # add jhu color picker options
 # delete the bottom comment on the covid R script
 # work on jhu data
@@ -25,7 +24,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 # UI --------------------------------
 ui <- shinyUI(
         navbarPage(theme = shinytheme("journal"), 
-                   title = "COVID-19 Super Tracker", ### Replace title with something reasonable
+                   title = "COVID-19 Super Tracker", 
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -49,7 +48,7 @@ ui <- shinyUI(
                                     selected = "Linear"),
                         selectInput("which_theme_nyt",
                                     "Choose plot theme:",
-                                    choices = c("Minimal", "Grey"),
+                                    choices = c("Minimal", "Grey", "Dark", "Linedraw"),
                                     selected = "Minimal")
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
@@ -67,8 +66,17 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "indianred2"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "sienna")
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "orange2"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "mediumvioletred"),
+                         radioButtons("y_scale_jhu",
+                                      "Scale for Y-axis?",
+                                      choices = c("Linear","Log"),
+                                      selected = "Linear"),
+                         selectInput("which_theme_jhu",
+                                     "Choose plot theme:",
+                                     choices = c("Minimal", "Grey", "Dark", "Linedraw"),
+                                     selected = "Minimal")
+                         
                          
                      ), # closes JHU sidebarPanel     
                      
@@ -133,6 +141,9 @@ server <- function(input, output, session) {
     ##Watch capital letters for theme selection
     if (input$which_theme_nyt == "Minimal") nyt_subset_plot <- nyt_subset_plot + theme_minimal()
     if (input$which_theme_nyt == "Grey") nyt_subset_plot <- nyt_subset_plot + theme_grey()
+    if (input$which_theme_nyt == "Dark") nyt_subset_plot <- nyt_subset_plot + theme_dark() 
+    if (input$which_theme_nyt == "Linedraw") nyt_subset_plot <- nyt_subset_plot + theme_linedraw()
+    
     
     ###Return the plot to be plotted
     nyt_subset_plot + theme(legend.position = "bottom")
@@ -143,10 +154,40 @@ server <- function(input, output, session) {
 
     
     ## Define a reactive for subsetting the JHU data
-    jhu_data_subset <- reactive({})
+    jhu_data_subset <- reactive({
+        jhu_data %>%
+            filter(state == input$which_co_reg) -> jhu_co_reg
+     ###### NOT DONE YET, don't know if I should include province or state too???#####
+        
+        
+        
+        
+        
+        
+    })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    jhu_plot <- renderPlot({})
+    jhu_plot <- renderPlot({
+        jhu_subset_plot
+        ####finish plot here#################################
+        
+        
+        ##Corresponds to input$y_scale_jhu
+        if(input$y_scale_jhu == "Log") {
+            jhu_subset_plot <- jhu_subset_plot + scale_y_log10()
+        }
+        
+        
+        ##Corresponds to input$which_theme_jhu
+        if (input$which_theme_jhu == "Minimal") jhu_subset_plot <- jhu_subset_plot + theme_minimal()
+        if (input$which_theme_jhu == "Grey") jhu_subset_plot <- jhu_subset_plot + theme_grey()
+        if (input$which_theme_jhu == "Dark") jhu_subset_plot <- jhu_subset_plot + theme_dark() 
+        if (input$which_theme_jhu == "Linedraw") jhu_subset_plot <- jhu_subset_plot + theme_linedraw()
+        
+        
+        
+        
+    })
     
 }
 
