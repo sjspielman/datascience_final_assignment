@@ -52,11 +52,15 @@ jhu_deaths_raw %>%
                names_to = "date",
                values_to = "deaths") -> jhu_deaths
 
-bind_rows(jhu_cases, jhu_deaths) %>%
-  pivot_longer(cases:deaths,
-               names_to = "covid_type",
-               values_to = "cumulative_number") -> jhu_data
+full_join(jhu_cases, jhu_deaths) %>%
+  pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number") %>%
+  mutate(date = lubridate::mdy(date)) %>%
+  mutate(cumulative_number = if_else(cumulative_number == 0, 1e-10, cumulative_number)) -> jhu_data
 
-jhu_data$date <- lubridate::mdy(jhu_data$date)
+
+
+
+
+
 
 
