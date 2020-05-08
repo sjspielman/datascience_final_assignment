@@ -13,13 +13,14 @@ library(shiny)
 library(shinythemes)
 library(tidyverse)
 library(colourpicker)
+library(shinyWidgets)
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
 
 # UI --------------------------------
 ui <- shinyUI(
-    navbarPage(theme = shinytheme("sandstone"), 
+    navbarPage(theme = shinytheme("yeti"), 
                title = "Visualizing COVID-19",
                
                ## All UI for NYT goes in here:
@@ -36,19 +37,30 @@ ui <- shinyUI(
                                                       "Color for plotting COVID deaths:",
                                                       value = "#495BE3"),
                             
-                            selectInput("which_state",
-                                        "Which state would you like to plot?",
-                                        choices = usa_states,
-                                        selected = "Alabama"), ## input$which_state
-                            radioButtons("facet_county",
-                                         "Show counties across panels?",
-                                         choices = c("No", "Yes"),
-                                         selected = "No"),
                             
-                            radioButtons("y_scale",
-                                         "Scale for Y-Axis?",
-                                         choices = c("Linear", "Log"),
-                                         selected = "Linear"),
+                            pickerInput(inputId = "which_state",
+                                label = "Which state would you like to plot?", 
+                                choices = usa_states,
+                                options = list(style = "btn-primary")),
+                            
+                            radioGroupButtons(
+                                inputId = "facet_county",
+                                label = "Show counties across panels?",
+                                choices = c("No", "Yes"),
+                                individual = TRUE,
+                                checkIcon = list(
+                                    yes = tags$i(class = "fa fa-circle"),
+                                    no = tags$i(class = "fa fa-circle-o"))),
+                            
+                            
+                            radioGroupButtons(
+                                inputId = "y_scale",
+                                label = "Scale for Y-Axis?",
+                                choices = c("Linear", "Log"),
+                                individual = TRUE,
+                                checkIcon = list(
+                                    yes = tags$i(class = "fa fa-circle"),
+                                    no = tags$i(class = "fa fa-circle-o"))),
                             
                             selectInput("which_theme",
                                         "Choose a ggplot theme to use:",
@@ -74,22 +86,26 @@ ui <- shinyUI(
                         sidebarPanel(
                             
                             colourpicker::colourInput("jhu_color_cases",
-                                                      "Color for plotting COVID cases:",
+                                            "Color for plotting COVID cases:",
                                                       value = "#E09F12"),
                             
                             colourpicker::colourInput("jhu_color_deaths",
-                                                      "Color for plotting COVID deaths:",
+                                            "Color for plotting COVID deaths:",
                                                       value = "#7D35BD"),
                             
-                            selectInput("which_country",
-                                        "Which country or region would you like to plot?",
+                            pickerInput(inputId = "which_country",
+                            "Which country or region would you like to plot?", 
                                         choices = world_countries_regions,
-                                        selected = "Afghanistan"),
+                                        options = list(style = "btn-primary")),
                             
-                            radioButtons("jhu_y_scale",
-                                         "Scale for Y-Axis?",
-                                         choices = c("Linear", "Log"),
-                                         selected = "Linear"),
+                            radioGroupButtons(
+                                inputId = "jhu_y_scale",
+                                label = "Scale for Y-Axis?",
+                                choices = c("Linear", "Log"),
+                                individual = TRUE,
+                                checkIcon = list(
+                                    yes = tags$i(class = "fa fa-circle"),
+                                    no = tags$i(class = "fa fa-circle-o"))),
                             
                             selectInput("jhu_theme",
                                         "Choose a ggplot theme to use:",
@@ -115,9 +131,7 @@ server <- function(input, output, session) {
     ## PROTIP!! Don't forget, all reactives and outputs are enclosed in ({}). Not just parantheses or curly braces, but BOTH! Parentheses on the outside.
     
     
-    
-    
-    ## All server logic for NYT goes here -------------------------------------
+## All server logic for NYT goes here -------------------------------------
     
     ## Define a reactive for subsetting the NYT data
     nyt_data_subset <- reactive({  
@@ -182,7 +196,7 @@ server <- function(input, output, session) {
     })
     
     
-    ## All server logic for JHU goes here -------------------------------------
+## All server logic for JHU goes here -------------------------------------
     
     ## Define a reactive for subsetting the JHU data
     jhu_data_subset <- reactive({
