@@ -13,14 +13,15 @@ library(shiny)
 library(shinythemes)
 library(tidyverse)
 library(colourpicker)
+library(shinyWidgets)
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage( # theme = shinytheme("default"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
+        navbarPage(theme = shinytheme("simplex"), #specific theme
+                   title = "Covid-19 Visualizations", #unique title
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -28,8 +29,8 @@ ui <- shinyUI(
                     # All user-provided input for NYT goes in here:
                     sidebarPanel(
                         
-                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "red"),
+                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "darkseagreen4"),
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "coral2"),
                         selectInput("which_state", ##input$which_state
                                     "Which state would you like to plot?",
                                      choices = usa_states, 
@@ -62,8 +63,8 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "purple"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "orange"),
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "darkslategray4"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "salmon3"),
                          selectInput("which_country", ##input$which_country
                                      "Which Country or Region would you like to plot?",
                                      choices = world_countries_regions, 
@@ -76,6 +77,8 @@ ui <- shinyUI(
                                      "Which ggplot theme to use?",
                                      choices = c("Classic", "Minimal"), 
                                      selected = "Classic")
+
+                    
                          
                      ), # closes JHU sidebarPanel     
                      
@@ -131,22 +134,22 @@ server <- function(input, output, session) {
                 labs(title = paste(input$which_state, "Cases and Deaths"),
                      x = "Date",
                      y = "Cumulative Count",
-                     color = "Type") -> myplot
+                     color = "Type") -> myplot_nyt
         
     ## Deal with input$y_scale choice       
         if (input$y_scale == "Log"){
-            myplot <- myplot + scale_y_log10()
+            myplot_nyt <- myplot_nyt + scale_y_log10()
         }
         
     ## deal with input$facet_wrap
-     if (input$facet_county == "Yes") myplot <- myplot + facet_wrap(~county)
+     if (input$facet_county == "Yes") myplot_nyt <- myplot_nyt + facet_wrap(~county)
                 
      ## Deal with input$which_theme choice
-     if (input$which_theme == "Classic") myplot <- myplot + theme_classic()
-     if (input$which_theme == "Minimal") myplot <- myplot + theme_minimal()
+     if (input$which_theme == "Classic") myplot_nyt <- myplot_nyt + theme_classic()
+     if (input$which_theme == "Minimal") myplot_nyt <- myplot_nyt + theme_minimal()
                 
      ## return the plot to be plotted           
-     myplot + theme(legend.position = "bottom")      
+     myplot_nyt + theme(legend.position = "bottom")      
                 
     })
     
@@ -161,16 +164,43 @@ server <- function(input, output, session) {
     
     ## Define a reactive for subsetting the JHU data
     jhu_data_subset <- reactive({
+        jhu_data %>%
+            filter(country_or_region == input$which_country) -> jhu_country
         
+        jhu_country
     })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    jhu_plot <- renderPlot({})
+    output$jhu_plot <- renderPlot({
+        jhu_data_subset() %>%
+            ggplot(aes(x = date,
+                       y = cumulative_number,
+                       color = covid_type,
+                       group = covid_type)) +
+            geom_point() +
+            geom_line() +
+            scale_color_manual(values = c(
+                input$jhu_color_cases,
+                input$jhu_color_deaths)) +
+            labs(title = paste(input$which_country, "Cases and Deaths"),
+                 x = "Date",
+                 y = "Cumulative Count",
+                 color = "Type") -> myplot_jhu
+        
+        
+        ## Deal with input$y_scale choice       
+        if (input$y_scale == "Log"){
+            myplot_jhu <- myplot_jhu + scale_y_log10()
+        }
+        
+        ## return the plot to be plotted           
+        myplot_jhu + theme(legend.position = "bottom")  
+
+        
+        
+    })
     
 }
-
-
-
 
 
 # Do not touch below this line! ----------------------------------
