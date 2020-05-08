@@ -29,9 +29,13 @@ ui <- shinyUI(
                     sidebarPanel(
                         
                         colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "pink"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "blue")
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "blue"), 
                         
-                    ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
+                    selectInput("which_state", 
+                                "Which state would you like to plot?",
+                                choices=usa_states, 
+                                selected="Pennsylvania")
+                    ),# closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
                     # All output for NYT goes in here:
                     mainPanel(
