@@ -55,34 +55,33 @@ jhu_confirmed_raw %>%
 
 ##Next is the data on number of deaths
 ##Read in the data
-jhu_deaths <- read.csv(jhu_deaths_global_url)
+jhu_deaths <- read_csv(jhu_deaths_global_url)
 
 ##tidying of the jhu_deaths
 jhu_deaths %>%
   #create a new column for deaths
   mutate(covid_type = "deaths") %>%
   #rename some column titles
-  #Province and State, and Country and Region had slashes in between before, but now they are periods
-  rename(province_or_state = `Province.State`, 
-         country_or_region = `Country.Region`,
+  #Province and State, and Country and Region
+  rename(province_or_state = `Province/State`, 
+         country_or_region = `Country/Region`,
          latitude =Lat,
          longitude =Long) %>%
+  #fix dates so there is no X in front of them, and separate by /
   #maintain date accuracy - same as before!
   pivot_longer(c(-province_or_state, -country_or_region, -latitude, -longitude, -covid_type),
                names_to = "date",
                values_to = "cumulative number") -> deaths_jhu
 
 ##Now we combine the two dataframes
-#can use full join or bind rows, but I find binding rows to be easier
+#can use full join or bind rows, up to preference
 #name it to the tibble name on rubric
 cases_jhu %>%
-  bind_rows(deaths_jhu) -> jhu_data_combined
+  full_join(deaths_jhu) -> jhu_data
 
-##tidy the combined JHU dataframe
-jhu_data_combined %>%
-  pivot_longer(c(-province_or_state, -country_or_region, -latitude, -longitude, -covid_type),
-               names_to = "date",
-               values_to = "cumulative number") -> jhu_data
 
 #recast date column
 jhu_data$date <- lubridate::mdy(jhu_data$date)
+
+
+
