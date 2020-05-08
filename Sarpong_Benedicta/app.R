@@ -34,7 +34,16 @@ ui <- shinyUI(
                     selectInput("which_state", 
                                 "Which state would you like to plot?",
                                 choices=usa_states, 
-                                selected="Pennsylvania")
+                                selected="Pennsylvania"), 
+                    radioButtons("y_scale",
+                                 "Y axis scale?", 
+                                 choices=c("Linear","Log"), 
+                                 selected="Linear"), 
+                    selectInput("which_theme", 
+                                "Which ggplot theme woulld youk like to use?",
+                                choices=c("Classic", "Minimal", "Dark", "Grey"), 
+                                selected="Classic"), 
+                    
                     ),# closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
                     # All output for NYT goes in here:
@@ -74,24 +83,40 @@ server <- function(input, output, session) {
     ## All server logic for NYT goes here ------------------------------------------
     
     ## Define a reactive for subsetting the NYT data
-    nyt_data_subset <- reactive({})
+    nyt_data_subset <- reactive({ #output is stored in nyt_data_subst(a reactive ) 
+        nyt_data%>%
+            filter(state ==input$which_state)%>% #we want the user to be able to pick whatever state they want 
+            group_by(date, covid_type)%>%
+            summarize(total_county_day=sum(cumulative_number)) #we want to add up all the counties on each day 
+    })
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$nyt_plot <- renderPlot({
-        nyt_data%>%
-            filter(state ==input$which_state)%>%
-            group_by(date, covid_type)%>%
-            summarize(total_county_day=sum(cumulative_number))%>% #we want to add up all the counties on each day 
+        nyt_data_subset()%>% #have to put () bc its a reactive
             ggplot(aes(x=date, y=total_county_day, color=covid_type, group=covid_type))+
             geom_point()+ 
             geom_line()+
             scale_color_manual(values =c(input$nyt_color_cases , input$nyt_color_deaths)) +
-            labs(title=paste(input$which_state, "cases and deaths"))
+            labs(title=paste(input$which_state, "cases and deaths"), y="Cumulative count")->nyt_myplot
+        if(input$y_scale=="Log"){
+            nyt_myplot<-nyt_myplot+scale_y_log10() #if user picks log use log scale 
+            
+        }
+        
+        if(input$which_theme=="Classic"){
+            nyt_myplot<-nyt_myplot+theme_classic()}
+        if(input$which_theme=="Dark"){
+            nyt_myplot<-nyt_myplot+theme_dark()}
+        if(input$which_theme=="Minimal"){
+            nyt_myplot<-nyt_myplot+theme_minimal()}
+        if(input$which_theme=="Grey"){
+                nyt_myplot<-nyt_myplot+theme_grey()}
+        
+        nyt_myplot+theme(text = element_text(size=16)) #change axis sizes 
         
     })
     
-    
-    
+   
     
     ## All server logic for JHU goes here ------------------------------------------
 
