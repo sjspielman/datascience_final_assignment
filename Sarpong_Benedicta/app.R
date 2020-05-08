@@ -14,12 +14,12 @@ library(shinythemes)
 library(tidyverse)
 library(colourpicker)
 
-source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
+source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file! #gives us full access to data in .R 
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage( # theme = shinytheme("default"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
+        navbarPage( theme = shinytheme("simplex"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
                    title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
@@ -28,8 +28,8 @@ ui <- shinyUI(
                     # All user-provided input for NYT goes in here:
                     sidebarPanel(
                         
-                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "red")
+                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "pink"),
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "blue")
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
@@ -46,8 +46,8 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "purple"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "orange")
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "violetred"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "pink")
                          
                      ), # closes JHU sidebarPanel     
                      
@@ -73,7 +73,18 @@ server <- function(input, output, session) {
     nyt_data_subset <- reactive({})
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$nyt_plot <- renderPlot({})
+    output$nyt_plot <- renderPlot({
+        nyt_data%>%
+            filter(state ==input$which_state)%>%
+            group_by(date, covid_type)%>%
+            summarize(total_county_day=sum(cumulative_number))%>% #we want to add up all the counties on each day 
+            ggplot(aes(x=date, y=total_county_day, color=covid_type, group=covid_type))+
+            geom_point()+ 
+            geom_line()+
+            scale_color_manual(values =c(input$nyt_color_cases , input$nyt_color_deaths)) +
+            labs(title=paste(input$which_state, "cases and deaths"))
+        
+    })
     
     
     
