@@ -28,6 +28,31 @@ nyt_raw %>%
   pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number") -> nyt_data
 
 
+jhu_confirmed_global_raw <- read_csv(jhu_confirmed_global_url)
+jhu_deaths_global_raw <- read_csv(jhu_deaths_global_url)
 
+jhu_confirmed_global_raw %>%
+  rename(Province_or_State = 'Province/State',
+         Country_or_Region = 'Country/Region',
+         Longtitude = Long,
+         Latitude = Lat) %>%
+  pivot_longer(c(-Province_or_State, -Country_or_Region, -Latitude, -Longtitude),
+               names_to = "Date",
+               values_to = "Cumulative Cases") -> jhu_confirmed_tidy
+
+jhu_deaths_global_raw %>%
+  rename(Province_or_State = 'Province/State',
+         Country_or_Region = 'Country/Region',
+         Longtitude = Long,
+         Latitude = Lat) %>%
+  pivot_longer(c(-Province_or_State, -Country_or_Region, -Latitude, -Longtitude),
+               names_to = "Date",
+               values_to = "Cumulative Deaths") -> jhu_deaths_tidy
+  
+
+full_join(jhu_confirmed_tidy, jhu_deaths_tidy) -> jhu_combined
+
+jhu_combined %>%
+  pivot_longer(`Cumulative Cases`: `Cumulative Deaths`, names_to = "Covid_Type", values_to = "Cumulative_Number") -> jhu_data
 
 # NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
