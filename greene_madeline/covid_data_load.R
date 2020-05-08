@@ -1,12 +1,7 @@
 library(tidyverse)
 library(lubridate) ## a tidyverse (but not core tidyverse) package for working with dates more easily
-library(viridis)
 
 ## Define global variables ----------------------------------------------
-
-## viridis options, see: https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html
-viridis_scheme_options <- c("viridis", "magma", "plasma", "inferno")
-
 
 ## array of USA states (for use with NYT data)
 usa_states <- c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Guam", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Northern Mariana Islands", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Puerto Rico", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virgin Islands", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")
@@ -26,18 +21,42 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 
 ## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
 
-nyt_raw <- read.csv(nyt_usa_data_url)
+nyt_raw <- read_csv(nyt_usa_data_url)
 
 nyt_raw %>%
   pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number") -> nyt_data
 
-
-#date 
-#county
-#state
-#fips (this is a location code used by maps, stands for "Federal Information Processing Standard")
-#covid_type (A categorical variable containing either "cases" or "deaths")
-#cumulative_number (The number associated with covid_type)
+nyt_data %>%
+  mutate(cumulative_number = if_else(cumulative_number == 0, 1e-10, cumulative_number)) -> nyt_data
 
 
-# NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
+#read in the data sets
+jhu_confirmed_raw <- read_csv(jhu_confirmed_global_url)
+jhu_deaths_raw <- read_csv(jhu_deaths_global_url)
+
+jhu_confirmed_raw %>%
+  rename("province_or_state" = `Province/State`) %>%
+  rename("country_or_region" = `Country/Region`) %>%
+  rename("latitude" = Lat) %>%
+  rename("longitude" = Long) %>%
+  pivot_longer(-c("province_or_state", "country_or_region", "latitude", "longitude"),
+                             names_to = "date",
+                             values_to = "cases") -> jhu_cases
+
+jhu_deaths_raw %>%
+  rename("province_or_state" = `Province/State`) %>%
+  rename("country_or_region" = `Country/Region`) %>%
+  rename("latitude" = Lat) %>%
+  rename("longitude" = Long) %>%
+  pivot_longer(-c("province_or_state", "country_or_region", "latitude", "longitude"),
+               names_to = "date",
+               values_to = "deaths") -> jhu_deaths
+
+bind_rows(jhu_cases, jhu_deaths) %>%
+  pivot_longer(cases:deaths,
+               names_to = "covid_type",
+               values_to = "cumulative_number") -> jhu_data
+
+jhu_data$date <- lubridate::mdy(jhu_data$date)
+
+
