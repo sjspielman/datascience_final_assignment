@@ -57,7 +57,7 @@ ui <- shinyUI(
                     
                     # All output for NYT goes in here:
                     mainPanel(
-                        plotOutput("nyt_plot", width = "1000px", height = "1000px") #closes plotOutput
+                        plotOutput("nyt_plot", height = "700px") #closes plotOutput
                     ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function
                     
             ), # closes tabPanel for NYT data
@@ -154,9 +154,6 @@ server <- function(input, output, session) {
            myploot <- myploot + scale_y_log10()
        } #closes if statement
     ##otherwise 
-    
-    ##Input for facet_county
-        if(input$facet_county == "Individually") myploot <- myploot + facet_wrap(~county)
         
     ##Which theme choice
         if (input$which_theme_nyt == "Classic") myploot <- myploot + theme_classic()
@@ -175,10 +172,14 @@ server <- function(input, output, session) {
         if (input$which_theme_nyt == "Lilac") ggthemr("lilac")
         if (input$which_theme_nyt == "Sea") ggthemr("sea")
         
-        
-        myploot + theme(axis.title = element_text(size = 15),
-                        axis.text = element_text(size = 12),
-                        plot.title = element_text(size = 30))
+     
+     ##facet for counties
+     if (input$facet_county == "Individually"){ 
+         myploot <- myploot + facet_wrap(~county, scales = "free") + theme(panel.spacing.x = unit(6, "mm")) + theme(axis.text = element_text(size = 8), plot.title = element_text(size = 30), legend.text = element_text(size = 12), legend.title = element_text(size = 15), axis.title = element_text(size = 15))
+     } else {
+         myploot <- myploot + theme(axis.title = element_text(size = 20), axis.text = element_text(size = 15), plot.title = element_text(size = 30), legend.text = element_text(size = 15), legend.title = element_text(size = 20)) #need to have the myploot <- my ploot + to make it work!
+     }
+    myploot
         
     }) #closes render plot
  
@@ -230,9 +231,6 @@ server <- function(input, output, session) {
             jhu_my_ploot <- jhu_my_ploot + scale_y_log10()
         } #closes if statement
         
-        ##if they choose to see states/provinces individually
-        
-        if(input$facet_province == "Individually") jhu_my_ploot <- jhu_my_ploot + facet_wrap(~province_or_state)
         
         ##which theme?
         if (input$which_theme_jhu == "Classic") jhu_my_ploot <- jhu_my_ploot + theme_classic()
@@ -250,6 +248,13 @@ server <- function(input, output, session) {
         if (input$which_theme_jhu == "Grass") ggthemr("grass")
         if (input$which_theme_jhu == "Lilac") ggthemr("lilac")
         if (input$which_theme_jhu == "Sea") ggthemr("sea")
+        
+        ##facet for states and provinces
+        if (input$facet_province == "Individually"){ 
+            jhu_my_ploot <- jhu_my_ploot + facet_wrap(~province_or_state, scales = "free") + theme(panel.spacing.x = unit(6, "mm")) + theme(axis.text = element_text(size = 8), plot.title = element_text(size = 30), legend.text = element_text(size = 12), legend.title = element_text(size = 15), axis.title = element_text(size = 15))
+        } else {
+            jhu_my_ploot <- jhu_my_ploot + theme(axis.title = element_text(size = 20), axis.text = element_text(size = 15), plot.title = element_text(size = 30), legend.text = element_text(size = 15), legend.title = element_text(size = 20))
+        }
         
         jhu_my_ploot #need to put this show something shows up
     }) #closes renderPlot
