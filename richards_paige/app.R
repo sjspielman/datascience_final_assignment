@@ -69,12 +69,16 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "lightseagreen"),
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "9D20B3"),
                          colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "slateblue4"), #need a comma since I am adding a new widget
                          selectInput("which_country", ## input$which_country,
                                      "What Country or Region would you like to see COVID-19 data for?",
                                      choices = world_countries_regions,
                                      selected = "Thailand"),
+                         radioButtons("facet_province", #input$facet_province
+                                      "Do you want to see all the Provinces or States of your chosen Country individually or all pooled together? **Please note that many places do not have specific information for a Province or State, so the plot may not change at all.**",
+                                      choices = c("Individually", "Together"),
+                                      selected = "Together"),
                          radioButtons("jhu_y_scale", #input$jhu_y_scale
                                       "What type of scale do you want to see for the Y axis?",
                                       choices = c("Linear", "Log"),
@@ -82,7 +86,7 @@ ui <- shinyUI(
                          selectInput("which_theme_jhu", #input$which_theme_jhu
                                      "What background theme would you like to see?",
                                      choices = themes_options,
-                                     selected = "Camoflauge")
+                                     selected = "Sea")
                      ), # closes JHU sidebarPanel     
                      
                      # All output for JHU goes in here:
@@ -180,14 +184,28 @@ server <- function(input, output, session) {
     
     ## Define a reactive for subsetting the JHU data
     jhu_data_subset <- reactive({jhu_data %>% #need to use this to make the data cleaner
+            group_by(date, covid_type) %>%
             filter(country_or_region == input$which_country) -> jhu_country
-        jhu_country
+        
+        
+        if(input$facet_province == "Together"){
+            jhu_country %>% #can't have lines going down. and pooled county data together
+                group_by(date, covid_type) %>%
+                summarize(y = sum(cumulative_number)) -> final_jhu_country
+        }
+        
+        if(input$facet_province == "Individually"){
+            jhu_country %>%
+                rename(y = cumulative_number) -> final_jhu_country
+        }
+        
+        final_jhu_country
     }) #closes reactive
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$jhu_plot <- renderPlot({
         jhu_data_subset() %>%
-            ggplot(aes(x = date, y = cumulative_number, color = covid_type)) +
+            ggplot(aes(x = date, y = y, color = covid_type, group = covid_type)) +
             geom_point() +
             geom_line() +
             scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) +
@@ -200,6 +218,10 @@ server <- function(input, output, session) {
         if(input$jhu_y_scale == "Log"){
             jhu_my_ploot <- jhu_my_ploot + scale_y_log10()
         } #closes if statement
+        
+        ##if they choose to see states/provinces individually
+        
+        if(input$facet_province == "Individually") jhu_my_ploot <- jhu_my_ploot + facet_wrap(~province_or_state)
         
         ##which theme?
         if (input$which_theme_jhu == "Classic") jhu_my_ploot <- jhu_my_ploot + theme_classic()
@@ -217,6 +239,7 @@ server <- function(input, output, session) {
         if (input$which_theme_jhu == "Grass") ggthemr("grass")
         if (input$which_theme_jhu == "Lilac") ggthemr("lilac")
         if (input$which_theme_jhu == "Sea") ggthemr("sea")
+        
         jhu_my_ploot #need to put this show something shows up
     }) #closes renderPlot
     
