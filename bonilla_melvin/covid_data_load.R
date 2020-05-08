@@ -22,7 +22,8 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 
 nyt_raw <- read_csv(nyt_usa_data_url)
 nyt_raw %>%
-  pivot_longer(cases:deaths, names_to="covid_type", values_to="cumulative_number")->nyt_data
+  pivot_longer(cases:deaths, names_to="covid_type", values_to="cumulative_number") %>%
+  mutate(cumulative_number=if_else(cumulative_number==0,.0000001,cumulative_number))->nyt_data
 #nyt_raw was formated correctly for date,county, state, fips
 #only changes required were pivot longer in order to create a new column for covid_type and cumulative_number
 
@@ -30,15 +31,19 @@ jhu_confirmed<- read_csv(jhu_confirmed_global_url)
 jhu_deaths <- read_csv(jhu_deaths_global_url)
 
 jhu_confirmed %>%
-  pivot_longer(cols = c(-`Province/State`,-`Country/Region`,-Lat,-Long),
-               names_to="date",values_to="cumulative_number") %>%
   mutate(covid_type="cases") %>%
-  bind_rows(jhu_deaths %>% pivot_longer(cols = c(-`Province/State`,-`Country/Region`,-Lat,-Long),
-                                        names_to="date",values_to="cumulative_number")%>%
-              mutate(covid_type="deaths")) %>%
+  bind_rows(jhu_deaths %>%
+              mutate(covid_type="deaths")) %>% 
+  pivot_longer(cols = c(-`Province/State`,-`Country/Region`,-Lat,-Long,-covid_type),
+               names_to="date",values_to="cumulative_number") %>%
   rename(Latitude=Lat) %>%
   rename(Longitude=Long) %>%
-  mutate(date=mdy(date))->jhu_data
+  mutate(date=mdy(date)) %>%
+  mutate(cumulative_number=if_else(cumulative_number==0,.0000001,cumulative_number))->jhu_data
+
+
+
+
 
 
 
