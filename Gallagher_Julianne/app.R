@@ -13,6 +13,7 @@ library(shiny)
 library(shinythemes)
 library(tidyverse)
 library(colourpicker)
+library(plotly)
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
@@ -61,7 +62,7 @@ ui <- shinyUI(
                     
                     # All output for NYT goes in here:
                     mainPanel(
-                        plotOutput("nyt_plot", height = "700px")
+                        plotlyOutput("nyt_plot", height = "700px")
                     ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function  
             ), # closes tabPanel for NYT data
             
@@ -99,7 +100,7 @@ ui <- shinyUI(
                      
                      # All output for JHU goes in here:
                      mainPanel(
-                        plotOutput("jhu_plot", height = "700px")
+                        plotlyOutput("jhu_plot", height = "700px")
                      ) # closes JHU mainPanel     
             ) # closes tabPanel for JHU data
     ) # closes navbarPage
@@ -148,8 +149,8 @@ server <- function(input, output, session) {
     })
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
-output$nyt_plot <- renderPlot({
-    nyt_data_subset() %>%
+output$nyt_plot <- renderPlotly({
+  nyt_data_subset() %>%
             ggplot(aes(x = x_nyt, y= y_nyt, color= covid_type, group= covid_type)) + 
             geom_point() + 
             geom_line() +
@@ -171,8 +172,16 @@ output$nyt_plot <- renderPlot({
     if (input$which_theme_nyt == "Linedraw") myplot_nyt <- myplot_nyt + theme_linedraw()
     
 #Return the plot
-    myplot_nyt + theme(legend.position = "bottom")
-        
+    myplot_nyt + 
+      theme(legend.position = "bottom") + #legend on bottom
+      theme(plot.title = element_text(face= "bold", size = 16)) + #plot title bold and bigger
+      theme(axis.text=(element_text(size= 13, color= "gray21"))) + #axis ticks bigger and grey 
+      theme(axis.title = element_text(size= 15)) +  #axis titles bigger 
+      theme(legend.text = element_text(size = 13)) -> myplot_nyt2
+    
+    #print    
+    print(ggplotly(myplot_nyt2))
+    
     })
     
     
@@ -207,7 +216,7 @@ jhu_data_subset <- reactive({
     })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
- output$jhu_plot <- renderPlot({
+ output$jhu_plot <- renderPlotly({
 
     jhu_data_subset() %>%
      ggplot(aes(x = x_jhu, y= cumulative_number, color= covid_type, group= covid_type)) +
@@ -222,20 +231,25 @@ jhu_data_subset <- reactive({
       }
 
       #Deal with input$which_theme choice
-      if (input$which_theme_jhu == "Classic") myplot_jhu <- myplot_jhu + theme_classic()
+      if (input$which_theme_jhu == "Classic") myplot_jhu <- myplot_jhu + theme_classic() 
       if (input$which_theme_jhu == "Minimal") myplot_jhu <- myplot_jhu + theme_minimal()
       if (input$which_theme_jhu == "Dark") myplot_jhu <- myplot_jhu + theme_dark()
       if (input$which_theme_jhu == "Linedraw") myplot_jhu <- myplot_jhu + theme_linedraw()
 
        #Return the plot
-       myplot_jhu + theme(legend.position = "bottom")
+       myplot_jhu + 
+         theme(legend.position = "bottom") + #legend bottom
+         theme(plot.title = element_text(face= "bold", size = 16)) + #Plot title bold and bigger
+         theme(axis.text=(element_text(size= 13, color= "gray21"))) + #axis ticks bigger and grey 
+         theme(axis.title = element_text(size= 15)) + #axis titles bigger
+         theme(legend.text = element_text(size = 13)) -> myplot_jhu2
+       
+       #print
+       print(ggplotly(myplot_jhu2))
        
     })
     
 }
-
-
-
 
 
 # Do not touch below this line! ----------------------------------

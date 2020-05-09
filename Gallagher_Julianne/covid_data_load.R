@@ -54,5 +54,3 @@ jhu_data_raw %>%
   mutate(cumulative_number = cumulative_number + 1e-10,
          date = lubridate::mdy(date))  -> jhu_data
 
-
-
