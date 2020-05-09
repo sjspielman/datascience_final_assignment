@@ -115,28 +115,14 @@ server <- function(input, output, session) {
         nyt_data %>%
             filter(state == input$which_state_nyt) -> nyt_state
         
-        if (input$nyt_100_start == "Yes"){
-            nyt_state %>%
-                pivot_wider(names_from = covid_type, values_from = cumulative_number) %>%
-                filter(cases >= 100) %>%
-                pivot_longer(c(cases, deaths), names_to= "covid_type", values_to = "cumulative_number") %>%
-                rename(x = date) -> nyt_100_cases
-        }
-        
-        if (input$nyt_100_start == "No"){
-            nyt_state %>%
-                rename(x = date) -> nyt_100_cases
-        }
-        
-        
         if (input$facet_county_nyt == "No"){
             ##combine county data to get single point per day for cases and deaths
-            nyt_100_cases %>%
+            nyt_state %>%
                 group_by(date, covid_type) %>%
                 summarise(y = sum(cumulative_number)) -> final_nyt_state
             }
         if (input$facet_county_nyt == "Yes"){
-            nyt_100_cases %>%
+            nyt_state %>%
                 rename(y = cumulative_number) -> final_nyt_state
             }
         
@@ -147,7 +133,7 @@ server <- function(input, output, session) {
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$nyt_plot <- renderPlot({
         nyt_data_subset() %>%
-            ggplot(aes(x = x, y = y, color = covid_type, group = covid_type)) +
+            ggplot(aes(x = date, y = y, color = covid_type, group = covid_type)) +
             #line graph
             geom_point() +
             geom_line() +
@@ -184,19 +170,6 @@ server <- function(input, output, session) {
             ##we can facet by province or state later
             filter(country_or_region == input$which_co_reg) -> jhu_co_reg
         
-        if (input$jhu_100_start == "Yes"){
-            jhu_co_reg %>%
-                pivot_wider(names_from = covid_type, values_from = cumulative_number) %>%
-                filter(cases >= 100) %>%
-                pivot_longer(c(cases, deaths), names_to= "covid_type", values_to = "cumulative_number") %>%
-                rename(x = date) -> jhu_100_cases
-        }
-        
-        if (input$jhu_100_start == "No"){
-            jhu_co_reg %>%
-                rename(x = date) -> jhu_100_cases
-            
-        }
     })
     
     
@@ -205,16 +178,13 @@ server <- function(input, output, session) {
         jhu_data_subset() %>%
             #we already defined y in our reactive, so we can use it as our y-axis
             #group and color by similar things to NYT data
-            ggplot(aes(x = x, y = y, color = covid_type, group = covid_type)) +
+            ggplot(aes(x = date, y = y, color = covid_type, group = covid_type)) +
             #line graph
             geom_point() +
             geom_line() +
             scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) +
             labs(title = paste(input$which_co_reg, "Cases and Deaths")) -> jhu_subset_plot
        
-        
-        ##Corresponds to input$facet_county choice
-        if (input$facet_prov_st == "Yes") jhu_subset_plot <- jhu_subset_plot + facet_wrap(~province_or_state)
         
         ##Corresponds to input$y_scale_jhu
         if(input$y_scale_jhu == "Log") {
