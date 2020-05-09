@@ -68,14 +68,14 @@ ui <- shinyUI(
                                      "Which Country or Region would you like to plot?", 
                                      choices = world_countries_regions, 
                                      selected = "US"), 
-                         radioButtons("y_scale",
+                         radioButtons("y_scale_jhu",
                                       "Scale for Y-axis?",
                                       choices = c("Linear", "Log"),
                                       selected = "Linear"),
-                         selectInput("which_theme",
+                         selectInput("which_theme_jhu",
                                      "Which ggplot theme to use?",
                                      choices = c("Classic", "Minimal", "Light", "Gray","Linedraw", "Dark"),
-                                     selected = "Dark")
+                                     selected = "Linedraw")
                          
                          
                      ), # closes JHU sidebarPanel     
@@ -154,20 +154,21 @@ server <- function(input, output, session) {
         ggplot(aes(x = Date, y = Cumulative_Number, color = Covid_Type, group = Covid_Type))+
         geom_point()+
         geom_line()+
-        scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) -> my_jhu_plot
+        scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths))-> my_jhu_plot
         
-      
       
       ##Input$y_scale choices
-      if(input$y_scale == "Log")my_jhu_plot <- my_jhu_plot + scale_y_log10()
-        
-        ##with input$which_theme choices
-      if (input$which_theme == "Classic") my_jhu_plot <- my_jhu_plot + theme_classic()
-      if (input$which_theme == "Minimal") my_jhu_plot <- my_jhu_plot + theme_minimal()
-      if (input$which_theme == "Light") my_jhu_plot <- my_jhu_plot + theme_light()
-      if (input$which_theme == "Gray") my_jhu_plot <- my_jhu_plot + theme_gray()
-      if (input$which_theme == "Linedraw") my_jhu_plot <- my_jhu_plot + theme_linedraw()
-      if (input$which_theme == "Dark") my_jhu_plot <- my_jhu_plot + theme_dark()
+      if(input$y_scale_jhu == "Log"){
+        my_jhu_plot <- my_jhu_plot + scale_y_log10()
+      }
+      
+      ##with input$which_theme choices
+      if (input$which_theme_jhu == "Classic") my_jhu_plot <- my_jhu_plot + theme_classic()
+      if (input$which_theme_jhu == "Minimal") my_jhu_plot <- my_jhu_plot + theme_minimal()
+      if (input$which_theme_jhu == "Light") my_jhu_plot <- my_jhu_plot + theme_light()
+      if (input$which_theme_jhu == "Gray") my_jhu_plot <- my_jhu_plot + theme_gray()
+      if (input$which_theme_jhu == "Linedraw") my_jhu_plot <- my_jhu_plot + theme_linedraw()
+      if (input$which_theme_jhu == "Dark") my_jhu_plot <- my_jhu_plot + theme_dark()
         
         ##return to the plot
         my_jhu_plot + theme(legend.position = "right")+
