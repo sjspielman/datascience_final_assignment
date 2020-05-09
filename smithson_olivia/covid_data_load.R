@@ -41,6 +41,8 @@ jhu_confirmed_raw <- read_csv(jhu_confirmed_global_url)
 
 ##tidying of jhu_confirmed_raw
 jhu_confirmed_raw %>%
+  ##alter cumulative number to make its log plottable
+  #mutate(cumulative_number = if_else(cumulative_number == 0, 1e-10, cumulative_number)) %>%
   #create a new column for cases 
   mutate(covid_type = "cases") %>%
   #rename some column titles
@@ -59,6 +61,8 @@ jhu_deaths <- read_csv(jhu_deaths_global_url)
 
 ##tidying of the jhu_deaths
 jhu_deaths %>%
+  ##alter cumulative number to make its log plottable
+  #mutate(cumulative_number = if_else(cumulative_number == 0, 1e-10, cumulative_number)) %>%
   #create a new column for deaths
   mutate(covid_type = "deaths") %>%
   #rename some column titles
