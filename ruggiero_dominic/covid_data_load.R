@@ -19,10 +19,27 @@ jhu_confirmed_global_url <- paste0(jhu_top_url, "time_series_covid19_confirmed_g
 jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_global.csv")
 
 
-## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
+#read in the NYT dataset 
+nyt_raw<-read_csv(nyt_usa_data_url)
+nyt_raw%>% 
+#pivot to create a single column for covid type to standardize the deaths and cases, then the cumulative number 
+  pivot_longer(cases:deaths, names_to="covid_type", values_to="cumulative_number")->nyt_data
 
+#read in the jhu datasets
+jhu_deaths<-read_csv(jhu_deaths_global_url)
+jhu_confirmed<-read_csv(jhu_confirmed_global_url)
 
+jhu_deaths%>%
+#by using starts with and all digits, we can assure that all dates, regardless of how many, are selected, then pivot to create a date column and the cumulative number to standardize by.
+  pivot_longer(cols=starts_with(c('1','2','3','4','5','6','7','8','9')), names_to="date", values_to="cumulative_number")%>%
+  mutate(covid_type="deaths")->jhudeaths
 
-
-
-# NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
+jhu_confirmed%>%
+  pivot_longer(cols=starts_with(c('1','2','3','4','5','6','7','8','9')), names_to="date", values_to="cumulative_number")%>%
+  mutate(covid_type="cases")->jhuconfirmed
+  
+jhudeaths%>%
+#all columns are identical, so bind_rows should combine the two JHU datasets cleanly.
+  bind_rows(jhuconfirmed)->jhu_data
+#now to mutate the date character into a useable date to standardize with NYT.
+lubridate::as_date(jhu_data$date)->jhu_data$date
