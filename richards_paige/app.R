@@ -16,6 +16,7 @@ library(colourpicker)
 library(ggthemr)
 library(plotly)
 library(shinyWidgets)
+
 themes_options <- c("Flat", "Sky", "Classic", "Chalk", "Dust", "Minimal", "Lilac", "Grey", "Sea", "Black and White", "Copper", "Dark", "Grass", "Light", "Camoflauge")
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
@@ -68,7 +69,7 @@ ui <- shinyUI(
                     
                     # All output for NYT goes in here:
                     mainPanel(
-                        plotlyOutput("nyt_plot", height = "700px", width = "900px") #closes plotOutput
+                        plotlyOutput("nyt_plot", height = "800px", width = "1000px") #closes plotOutput
                     ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function
                     
             ), # closes tabPanel for NYT data
@@ -116,7 +117,7 @@ ui <- shinyUI(
                      
                      # All output for JHU goes in here:
                      mainPanel(
-                        plotlyOutput("jhu_plot", height = "700px", width = "900px")
+                        plotlyOutput("jhu_plot", height = "800px", width = "1000px")
                      ) # closes JHU mainPanel     
             ) # closes tabPanel for JHU data
     ) # closes navbarPage
