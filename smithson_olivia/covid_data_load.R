@@ -53,7 +53,7 @@ jhu_confirmed_raw %>%
   #maintain date accuracy
   pivot_longer(c(-province_or_state, -country_or_region, -latitude, -longitude, -covid_type),
                names_to = "date",
-               values_to = "cumulative number") -> cases_jhu
+               values_to = "cumulative_number") -> cases_jhu
 
 ##Next is the data on number of deaths
 ##Read in the data
@@ -75,7 +75,7 @@ jhu_deaths %>%
   #maintain date accuracy - same as before!
   pivot_longer(c(-province_or_state, -country_or_region, -latitude, -longitude, -covid_type),
                names_to = "date",
-               values_to = "cumulative number") -> deaths_jhu
+               values_to = "cumulative_number") -> deaths_jhu
 
 ##Now we combine the two dataframes
 #can use full join or bind rows, up to preference
@@ -84,7 +84,7 @@ cases_jhu %>%
   full_join(deaths_jhu) -> jhu_data
 
 
-#recast date column
+#recast date column with lubridate argument
 jhu_data$date <- lubridate::mdy(jhu_data$date)
 
 
