@@ -14,6 +14,7 @@ library(shinythemes)
 library(tidyverse)
 library(colourpicker)
 library(plotly)
+library(rsconnect)
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
