@@ -15,6 +15,7 @@ library(tidyverse)
 library(colourpicker)
 library(ggthemr)
 library(plotly)
+library(shinyWidgets)
 themes_options <- c("Flat", "Sky", "Classic", "Chalk", "Dust", "Minimal", "Lilac", "Grey", "Sea", "Black and White", "Copper", "Dark", "Grass", "Light", "Camoflauge")
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
@@ -34,26 +35,35 @@ ui <- shinyUI(
                         
                         colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "darkorchid"),
                         colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "darkturquoise"), #need comma because we are putting another one
-                        selectInput("which_state", ## input$which_state,
+                        pickerInput("which_state", ## input$which_state,
                                     "What state would you like to see COVID-19 data for?",
                                     choices = usa_states,
-                                    selected = "Wyoming"), #chose this because there is a meme that Wyoming does not exist, closes selectInput
-                        radioButtons("facet_county",
-                                     "Do you want to see all the Counties of this State individually or all pooled together?",
+                                    selected = "Wyoming",
+                                    options = list(style = "btn-warning")), #chose this because there is a meme that Wyoming does not exist, closes selectInput
+                        prettyRadioButtons("facet_county",
+                                          "Do you want to see all the Counties of this State individually or all pooled together?",
                                      choices = c("Individually", "Together"),
-                                     selected = "Together"),
-                        radioButtons("nyt_y_scale",
+                                     selected = "Together",
+                                     status = "info",
+                                     fill = TRUE,
+                                     animation = 'pulse'),
+                        prettyRadioButtons("nyt_y_scale",
                                      "What scale do you want to see for the Y axis?",
                                      choices = c("Linear", "Log"),
-                                     selected = "Linear"), #closes radio button
+                                     selected = "Linear",
+                                     status = "info",
+                                     shape = "curve",
+                                     fill = TRUE,
+                                     animation = 'pulse'), #closes radio button
                         numericInput("nyt_x_axis", 
                                      "Where do you want to begin the graph in regards to a day with *N* number of infections? **Note, if you choose to see the counties individually, set N to a low number such as 1. You may get a warning if you set the number too high because counties may not have that high of a number of cases recorded at this moment.**", 
                                      value = 1,
                                      min = 1e-10), 
-                        selectInput("which_theme_nyt",
+                        pickerInput("which_theme_nyt",
                                     "What theme are you interested in seeing?",
                                     choices = themes_options,
-                                    selected = "Dust")
+                                    selected = "Dust",
+                                    options = list(style = "btn-primary"))
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
                     # All output for NYT goes in here:
@@ -72,26 +82,36 @@ ui <- shinyUI(
 
                          colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "9D20B3"),
                          colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "slateblue4"), #need a comma since I am adding a new widget
-                         selectInput("which_country", ## input$which_country,
+                         pickerInput("which_country", ## input$which_country,
                                      "What Country or Region would you like to see COVID-19 data for?",
                                      choices = world_countries_regions,
-                                     selected = "Australia"),
-                         radioButtons("facet_province", #input$facet_province
+                                     selected = "Australia",
+                                     options = list(style = "btn-danger")),
+                         prettyRadioButtons("facet_province", #input$facet_province
                                       "Do you want to see all the Provinces or States of your chosen Country individually or all pooled together? **Please note that many places do not have specific information for a Province or State, so the plot may not change at all.**",
                                       choices = c("Individually", "Together"),
-                                      selected = "Together"),
+                                      selected = "Together",
+                                      status = "success",
+                                      shape = "curve",
+                                      fill = TRUE,
+                                      animation = 'pulse'),
                          numericInput("jhu_x_axis", #input$jhu_x_axis
                                       "Where do you want to begin the graph in regards to a day with *N* number of infections? **Note, set N to a low number, at first, such as 1. You may get a warning if you set the number too high because some countries or specific provinces may not have that high of a number of cases recorded at this moment.**", 
                                       value = 1,
                                       min = 1e-10),
-                         radioButtons("jhu_y_scale", #input$jhu_y_scale
+                         prettyRadioButtons("jhu_y_scale", #input$jhu_y_scale
                                       "What type of scale do you want to see for the Y axis?",
                                       choices = c("Linear", "Log"),
-                                      selected = "Linear"), #closes radio button
-                         selectInput("which_theme_jhu", #input$which_theme_jhu
+                                      selected = "Linear",
+                                      status = "success",
+                                      shape = "curve",
+                                      fill = TRUE,
+                                      animation = "pulse"), #closes radio button
+                         pickerInput("which_theme_jhu", #input$which_theme_jhu
                                      "What background theme would you like to see?",
                                      choices = themes_options,
-                                     selected = "Sea")
+                                     selected = "Sea",
+                                     options = list(style = "btn-warning"))
                      ), # closes JHU sidebarPanel     
                      
                      # All output for JHU goes in here:
