@@ -1,28 +1,17 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
-
-# Load all libraries ------------------------------------------------------------------------
 library(shiny)
 library(shinythemes)
 library(tidyverse)
 library(colourpicker)
-library(plotly)
-library(rsconnect)
+library(plotly) #library for interactive plots
+library(rsconnect) #library for shinyapps.io (the URL)
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage(theme = shinytheme("spacelab"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "Covid-19 Cases & Deaths", ### Replace title with something reasonable
+        navbarPage(theme = shinytheme("spacelab"),
+                   title = "Covid-19 Cases & Deaths", 
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -110,17 +99,14 @@ ui <- shinyUI(
 # Server --------------------------------
 server <- function(input, output, session) {
 
-    ## PROTIP!! Don't forget, all reactives and outputs are enclosed in ({}). Not just parantheses or curly braces, but BOTH! Parentheses on the outside.
     
-    
-
-    
-    ## All server logic for NYT goes here ------------------------------------------
-    ## Define a reactive for subsetting the NYT data
+## All server logic for NYT goes here ------------------------------------------
+## Define a reactive for subsetting the NYT data
     nyt_data_subset <- reactive({
+    
     #choice for which state 
-       nyt_data %>% 
-                filter(state == input$which_state) -> nyt_state
+    nyt_data %>% 
+      filter(state == input$which_state) -> nyt_state
      
       #Option to start x on 100th case 
       if (input$Start_100_nyt == "No"){
@@ -145,13 +131,13 @@ server <- function(input, output, session) {
             final_nyt %>% 
                 rename(y_nyt = cumulative_number) -> final_nyt_state
         }
-        
+        #must spit it out at the end!
         final_nyt_state
     })
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
 output$nyt_plot <- renderPlotly({
-  nyt_data_subset() %>%
+  nyt_data_subset() %>% #watch x and y and inputs!
             ggplot(aes(x = x_nyt, y= y_nyt, color= covid_type, group= covid_type)) + 
             geom_point() + 
             geom_line() +
@@ -180,19 +166,20 @@ output$nyt_plot <- renderPlotly({
       theme(axis.title = element_text(size= 15)) +  #axis titles bigger 
       theme(legend.text = element_text(size = 13)) -> myplot_nyt2
     
-    #print    
+    #print plotly  
     print(ggplotly(myplot_nyt2))
     
     })
     
     
     
-    
-    ## All server logic for JHU goes here ------------------------------------------
+  
+## All server logic for JHU goes here ------------------------------------------
 
     
-    ## Define a reactive for subsetting the JHU data
-jhu_data_subset <- reactive({
+## Define a reactive for subsetting the JHU data
+  jhu_data_subset <- reactive({
+
   #Choice for which country or region 
   jhu_data %>% 
         filter(country_or_region == input$which_country_region) -> jhu_country
@@ -204,14 +191,14 @@ jhu_data_subset <- reactive({
    }
    if (input$Start_100_jhu == "Yes"){
 
-     jhu_country %>%
+     jhu_country %>% #seperate covid type to cases and deaths to get one row per date
        pivot_wider(names_from = covid_type, values_from = cumulative_number) %>% ## ONE ROW PER DATE
-       filter(cases >= 100) %>%
+       filter(cases >= 100) %>% #then filter for ones starting after the 100th case
        pivot_longer(c(cases, deaths), names_to = "covid_type", values_to = "cumulative_number") %>%
        rename(x_jhu = date) -> final_jhu
 
      }
-      
+  #must spit it back out at the end!
   final_jhu
       
     })
@@ -219,12 +206,13 @@ jhu_data_subset <- reactive({
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
  output$jhu_plot <- renderPlotly({
 
-    jhu_data_subset() %>%
+    jhu_data_subset() %>% #watch x and y along with imputs!
      ggplot(aes(x = x_jhu, y= cumulative_number, color= covid_type, group= covid_type)) +
      geom_point() +
      geom_line() +
      scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) +
-     labs(x = "Date", y= "Total Cumlative Count", color = "Covid Type", title= paste(input$which_country_region, "Cases and Deaths")) -> myplot_jhu
+     labs(x = "Date", y= "Total Cumlative Count", color = "Covid Type", 
+          title= paste(input$which_country_region, "Cases and Deaths")) -> myplot_jhu
 
       #Deal with input$y_scale choice
       if (input$y_scale_jhu == "Log"){
@@ -245,7 +233,7 @@ jhu_data_subset <- reactive({
          theme(axis.title = element_text(size= 15)) + #axis titles bigger
          theme(legend.text = element_text(size = 13)) -> myplot_jhu2
        
-       #print
+       #print plotly
        print(ggplotly(myplot_jhu2))
        
     })
