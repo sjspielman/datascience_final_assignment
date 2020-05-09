@@ -14,7 +14,6 @@ library(shinythemes)
 library(tidyverse)
 library(colourpicker)
 library(ggthemes)
-library(shinyWidgets)
 library(usmap)
 
 
@@ -40,21 +39,26 @@ ui <- shinyUI(
                                      choices = usa_states, 
                                      selected = "New Jersey"),
                         radioButtons("begin_100_nyt",
-                                     "Start on the 100th case?",
+                                     "Do you want the plot to start on the 100th case?",
                                      choices = c("Yes", "No"),
                                      selected = "No"),
                         radioButtons("facet_county", 
-                                     "Show counties across panels, or pool all counties?",
+                                     "Do you want the counties shown across panels?",
                                      choices = c("Yes", "No"),
                                      selected = "No"), 
                         radioButtons("y_scale_nyt", 
-                                     "Scale for Y-axis",
+                                     "Which scale do you want for the for Y-axis?",
                                      choices = c("Linear", "Log"),
                                      selected = "Linear"),
                         selectInput("which_theme_nyt", 
-                                    "Which ggplot theme to use?",
+                                    "Which ggplot theme do you want to use?",
                                     choices = c("Classic", "Minimal", "Solarized","Economist", "Tufte"), 
-                                    selected = "Classic")
+                                    selected = "Classic"),
+                        #actionbuttons for a hyperlink to the data and my github
+                        actionButton("button", label = "NYT Data", onclick = "window.open('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')"), 
+                        actionButton("button", label = "My Github Code", onclick = "window.open('https://github.com/greenemadeline/datascience_final_assignment/tree/master/greene_madeline')")
+                        
+                        
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
@@ -74,21 +78,27 @@ ui <- shinyUI(
                          colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "darkslategray4"),
                          colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "salmon3"),
                          selectInput("which_country", ##input$which_country
-                                     "Which Country or Region would you like to plot?",
+                                     "Which country or region would you like to plot?",
                                      choices = world_countries_regions, 
                                      selected = "Italy"),
                          radioButtons("begin_100_jhu",
-                                      "Start on the 100th case?",
+                                      "Do you want the plot to start on the 100th case?",
                                       choices = c("Yes", "No"),
                                       selected = "No"),
                          radioButtons("y_scale_jhu", 
-                                      "Scale for Y-axis",
+                                      "Which scale do you want for the for Y-axis?",
                                       choices = c("Linear", "Log"),
                                       selected = "Linear"),
                          selectInput("which_theme_jhu", 
-                                     "Which ggplot theme to use?",
+                                     "Which ggplot theme do you want to use?",
                                      choices = c("Classic", "Minimal", "Solarized", "Economist", "Tufte"), 
-                                     selected = "Classic")
+                                     selected = "Classic"),
+                         #actionbuttons for a hyperlink to the data and my github
+                         actionButton("button", label = "JHU Data Confirmed Global Cases Data", onclick = "window.open('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')"), 
+                         actionButton("button", label = "JHU Data Global Deaths Data", onclick = "window.open('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')"),
+                         actionButton("button", label = "My Github Code", onclick = "window.open('https://github.com/greenemadeline/datascience_final_assignment/tree/master/greene_madeline')")
+                         
+                         
 
                     
                          
@@ -98,27 +108,8 @@ ui <- shinyUI(
                      mainPanel(
                         plotOutput("jhu_plot", height = "600px")
                      ) # closes JHU mainPanel     
-            ),# closes tabPanel for JHU data
+            )# closes tabPanel for JHU data
             
-            ## All UI for Map of USA goes in here:
-            tabPanel("Map of USA",
-                     
-                     # All user-provided input for MAP goes in here:
-                     sidebarPanel(
-                         radioButtons("case_death",
-                                      "Do you want to display cases or deaths?",
-                                      choices = c("Cases", "Deaths"),
-                                      selected = "Cases")
-                         
-                     ),
-            
-                     # All output for MAP goes in here:
-                     mainPanel(
-                         plotOutput("map_plot")
-                     ) # closes MAP mainPanel     
-            )# closes tabPanel for MAP data
-            
-        
             
     ) # closes navbarPage
 ) # closes shinyUI
@@ -188,7 +179,8 @@ server <- function(input, output, session) {
                 labs(title = paste(input$which_state, "Cases and Deaths"),
                      x = "Date",
                      y= "Cumulative Count",
-                     color = "Type") -> myplot_nyt
+                     color = "Type",
+                     caption = "Data derived from the New York Times") -> myplot_nyt
         
     ## Deal with input$y_scale choice       
         if (input$y_scale_nyt == "Log"){
@@ -206,7 +198,17 @@ server <- function(input, output, session) {
      if (input$which_theme_nyt == "Tufte") myplot_nyt <- myplot_nyt + theme_tufte()
      
      ## return the plot to be plotted           
-     myplot_nyt + theme(legend.position = "bottom")      
+     myplot_nyt + 
+         theme(legend.position = "bottom")  + 
+         theme(axis.text = element_text(size = 13),
+               axis.title = element_text(size = 13,
+                            face = "bold"),
+               plot.title = element_text(size = 18,
+                            face = "bold",
+                            hjust = 0.5), 
+               legend.title = element_text(size = 13),
+               legend.text = element_text(size = 13)) 
+         
                 
     })
     
@@ -259,7 +261,8 @@ server <- function(input, output, session) {
             labs(title = paste(input$which_country, "Cases and Deaths"),
                  x = "Date",
                  y = "Cumulative Count",
-                 color = "Type")  -> myplot_jhu
+                 color = "Type",
+                 caption = "Data derived from John Hopkins University")  -> myplot_jhu
 
         
         
@@ -268,7 +271,7 @@ server <- function(input, output, session) {
             myplot_jhu <- myplot_jhu + scale_y_log10()
         }
         
-        
+    
         ## Deal with input$which_theme choice
         if (input$which_theme_jhu == "Classic") myplot_jhu <- myplot_jhu + theme_classic()
         if (input$which_theme_jhu == "Minimal") myplot_jhu <- myplot_jhu + theme_minimal()
@@ -278,49 +281,20 @@ server <- function(input, output, session) {
         
         
         ## return the plot to be plotted           
-        myplot_jhu + theme(legend.position = "bottom")  
-
-        
-        
-    })
-    
-    
-    
-    ## All server logic for MAP goes here ------------------------------------------
-    
-    
-    ## Define a reactive for subsetting the MAP 
-    nyt_map_subset <- reactive({
-        nyt_data %>%
-            select(-county) %>%
-            group_by(state) %>%
-            mutate(sum_data = sum(cumulative_number)) -> nyt_map
-        
-        
-        if (input$case_death == "Cases"){
-            nyt_map %>%
-                filter(covid_type == "cases") -> final_map
-        }
-        
-        if (input$case_death == "Deaths"){
-            nyt_map %>%
-                filter(covid_type == "deaths") -> final_map
-        
-        }
+        myplot_jhu + 
+            theme(legend.position = "bottom") +
+            theme(axis.text = element_text(size = 13),
+                  axis.title = element_text(size = 13,
+                                            face = "bold"),
+                  plot.title = element_text(size = 18,
+                                            face = "bold",
+                                            hjust = 0.5), 
+                  legend.title = element_text(size = 13),
+                  legend.text = element_text(size = 13))
         
     })
     
-    
-    
-    ## Define your renderPlot({}) for MAP panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$map_plot <- renderPlot({
-       nyt_map_subset() %>%
-        plot_usmap(values = sum_data, color = "black") +
-            scale_fill_continuous(low = "white", high = "red", name = "Cumulative Counts", label = scales::comma)
-        
-    })
-            
-    
+ 
 }
     
 
