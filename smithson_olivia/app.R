@@ -39,7 +39,7 @@ ui <- shinyUI(
                                     choices = usa_states,
                                     selected = "New Jersey"), ##this sets the default value
                         radioButtons("facet_county_nyt",
-                                     "Show counties across panels?",
+                                     "Include all counties?",
                                      choices = c("Yes", "No"),
                                      selected = "No"),
                         radioButtons("y_scale_nyt",
@@ -49,7 +49,11 @@ ui <- shinyUI(
                         selectInput("which_theme_nyt",
                                     "Choose plot theme:",
                                     choices = c("Minimal", "Grey", "Dark", "Linedraw"),
-                                    selected = "Minimal")
+                                    selected = "Minimal"),
+                        radioButtons("nyt_100_start",
+                                     "Start after 100th case?",
+                                     choices = c("Yes", "No"),
+                                     selected = "No")
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
@@ -72,11 +76,6 @@ ui <- shinyUI(
                                      "Select which country or region to plot:",
                                      choices = world_countries_regions,
                                      selected = "Germany"), #default value for country
-                         radioButtons("facet_prov_st",
-                                      "Show by province or state (if applicable)?",
-                                      choices = c("Yes", "No"),
-                                      selected = "No"),
-                         ####MIGHT GET ERROR WITH NA's#######################
                          radioButtons("y_scale_jhu",
                                       "Scale for Y-axis?",
                                       choices = c("Linear","Log"),
@@ -84,7 +83,11 @@ ui <- shinyUI(
                          selectInput("which_theme_jhu",
                                      "Choose plot theme:",
                                      choices = c("Minimal", "Grey", "Dark", "Linedraw"),
-                                     selected = "Minimal")
+                                     selected = "Minimal"),
+                         radioButtons("jhu_100_start",
+                                      "Start after 100th case?",
+                                      choices = c("Yes", "No"),
+                                      selected = "No")
                          
                          
                      ), # closes JHU sidebarPanel     
@@ -112,14 +115,28 @@ server <- function(input, output, session) {
         nyt_data %>%
             filter(state == input$which_state_nyt) -> nyt_state
         
+        if (input$nyt_100_start == "Yes"){
+            nyt_state %>%
+                pivot_wider(names_from = covid_type, values_from = cumulative_number) %>%
+                filter(cases >= 100) %>%
+                pivot_longer(c(cases, deaths), names_to= "covid_type", values_to = "cumulative_number") %>%
+                rename(x = date) -> nyt_100_cases
+        }
+        
+        if (input$nyt_100_start == "No"){
+            nyt_state %>%
+                rename(x = date) -> nyt_100_cases
+        }
+        
+        
         if (input$facet_county_nyt == "No"){
             ##combine county data to get single point per day for cases and deaths
-            nyt_state %>%
+            nyt_100_cases %>%
                 group_by(date, covid_type) %>%
                 summarise(y = sum(cumulative_number)) -> final_nyt_state
             }
         if (input$facet_county_nyt == "Yes"){
-            nyt_state %>%
+            nyt_100_cases %>%
                 rename(y = cumulative_number) -> final_nyt_state
             }
         
@@ -130,13 +147,7 @@ server <- function(input, output, session) {
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$nyt_plot <- renderPlot({
         nyt_data_subset() %>%
-            #Tried following 3 comment lines but they did not work:
-            #filter(state == input$which_state) %>%
-            #group_by(date, county, covid_type) %>%
-            #summarize(total_county_day = sum(cumulative_number)) %>%
-            #
-            #THIS is the correct way
-            ggplot(aes(x = date, y = y, color = covid_type, group = covid_type)) +
+            ggplot(aes(x = x, y = y, color = covid_type, group = covid_type)) +
             #line graph
             geom_point() +
             geom_line() +
@@ -173,28 +184,28 @@ server <- function(input, output, session) {
             ##we can facet by province or state later
             filter(country_or_region == input$which_co_reg) -> jhu_co_reg
         
-        if (input$facet_prov_st == "No"){
-            ##combine province and state data to get single point per day for cases and deaths
+        if (input$jhu_100_start == "Yes"){
             jhu_co_reg %>%
-                group_by(date, covid_type) %>%
-                summarise(y = sum(cumulative_number)) -> final_co_reg
-        }
-        if (input$facet_prov_st == "Yes"){
-            jhu_co_reg %>%
-                rename(y = cumulative_number) -> final_co_reg
+                pivot_wider(names_from = covid_type, values_from = cumulative_number) %>%
+                filter(cases >= 100) %>%
+                pivot_longer(c(cases, deaths), names_to= "covid_type", values_to = "cumulative_number") %>%
+                rename(x = date) -> jhu_100_cases
         }
         
-        final_co_reg 
-        
+        if (input$jhu_100_start == "No"){
+            jhu_co_reg %>%
+                rename(x = date) -> jhu_100_cases
+            
+        }
     })
     
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    jhu_plot <- renderPlot({
+    output$jhu_plot <- renderPlot({
         jhu_data_subset() %>%
             #we already defined y in our reactive, so we can use it as our y-axis
             #group and color by similar things to NYT data
-            ggplot(aes(x = date, y = y, color = covid_type, group = covid_type)) +
+            ggplot(aes(x = x, y = y, color = covid_type, group = covid_type)) +
             #line graph
             geom_point() +
             geom_line() +
