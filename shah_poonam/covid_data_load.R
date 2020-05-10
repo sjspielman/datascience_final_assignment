@@ -18,6 +18,7 @@ nyt_usa_data_url <- "https://raw.githubusercontent.com/nytimes/covid-19-data/mas
 
 ## URL where Johns Hopkins University data is stored and regularly updated
 jhu_top_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/"
+
 jhu_confirmed_global_url <- paste0(jhu_top_url, "time_series_covid19_confirmed_global.csv")
 jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_global.csv")
 
@@ -25,9 +26,45 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 ## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
 
 
-#Please look at the recording to finish this line
-nyt_raw<-read_csv(nyt_usa_data_url) %>%
+#nyt data tibble
+nyt_raw<-read_csv(nyt_usa_data_url) 
+
+nyt_raw %>%
   pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number") -> nyt_data
 
+#John Hopkins hosptial tibble
+jhu_comfirmed_raw <- read_csv(jhu_confirmed_global_url) 
+
+jhu_death_raw <- read_csv(jhu_deaths_global_url)
+
+#Renaming the columns for jhu confirmed death
+jhu_comfirmed_raw %>%
+   rename(Latitude = Lat,
+          Province_or_State = `Province/State`,
+          Longitude = Long, 
+          Country_or_Region = `Country/Region`) %>%
+#adding in the Date and cumulative_number
+  pivot_longer(c(-Province_or_State, -Country_or_Region, -Latitude, -Longitude),
+               names_to = "Date",
+               values_to = "Cumulative_Number") -> jhu_comfirmed_tidy
+
+#Renmaing the columns for jhu death 
+jhu_death_raw %>%
+  pivot_longer(c(-`Province/State`, -`Country/Region`, -Lat, -Long),
+               names_to = "Date",
+               values_to = "Cumulative_Number") %>%
+  rename(Latitude = Lat,
+         Province_or_State = `Province/State`,
+         Longitude = Long, 
+         Country_or_Region = `Country/Region`) -> jhu_death_tidy
 
 
+ # 2) A tibble of the JHU data *exactly called* `jhu_data` that should ultimately contain these final columns *that use these exact names*:
+  
+# `province_or_state`
+# `country_or_region`
+# `latitude`
+# `longitude`
+# `date`
+# `covid_type` (A categorical variable containing either "cases" or "deaths")
+# `cumulative_number` (The number associated with `covid_type`)

@@ -119,7 +119,8 @@ server <- function(input, output, session) {
                 geom_point() +
                 geom_line() +
                 scale_color_manual(values = c(input$nyt_color_cases, input$nyt_color_deaths)) +
-                labs(title= paste(input$which_state, "cases and deaths")) -> myplot
+                labs(x = "Date", y = "Cumulative number of cases", color = "Covid Data" ,
+                     title= paste(input$which_state, "cases and deaths")) -> myplot
         
         #Dealing with user input$y_scale
         if(input$y_scale == "Log") {

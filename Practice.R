@@ -7,4 +7,7 @@ nyt_data %>%
   geom_line() +
   theme_grey()
 
-
+#nick helpful slack note
+theme(axis.text = element_text(size = 12), ## labels on the axis
+      axis.title = element_text(size = 14, face = "bold"), ## title of axis
+      plot.title = element_text(size = 20, face = "bold", hjust = 0.5))
