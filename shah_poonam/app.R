@@ -31,13 +31,13 @@ ui <- shinyUI(
                         colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "green"),
                         colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "black"), 
                         
-                        #Selecting up the select box
+                        #Selecting up the select box for diferent states
                         selectInput("which_state", # input$which_state
                                    "Which state would you like to plot?",
                                    choices = usa_states,
                                    selected = "Maryland"),
                         
-                        #setting up the radio buttons for county
+                        #setting up the radio buttons for facet_county
                         radioButtons("facet_county",
                                      "Show counties across panels, or pool all counties",
                                      choices = c('No', "Yes"),
@@ -71,8 +71,36 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "lawngreen"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "chocolate4")
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "lightblue4"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "chocolate4"),
+                         
+                         #Selecting up the select box for diferent country/region
+                         
+                                    selectInput("which_country/region", # input$which_country/region
+                                    "Which country/region would you like to plot?",
+                                    choices = world_countries_regions,
+                                    selected = "Sweden"),
+                         
+                         #setting up the radio buttons for county
+                         radioButtons("facet_county",
+                                      "Show counties across panels, or pool all counties",
+                                      choices = c('No', "Yes"),
+                                      selected = "No"),
+                         
+                         #setting up the radio buttons for y scale
+                         radioButtons("y_scale",
+                                      "Scale for Y-axis?",
+                                      choices = c('Linear', "Log"),
+                                      selected = "Linear"),
+                         
+                         #Select box for chanigng the themes
+                         selectInput("choose_theme", # input$choose_theme
+                                     "Which ggplot theme to use?",
+                                     choices = c("Classic", "Minimal", "Dark", "Light"),
+                                     selected = "Classic")
+                         
+
+                         
                          
                      ), # closes JHU sidebarPanel     
                      
@@ -100,7 +128,7 @@ server <- function(input, output, session) {
         
         if(input$facet_county == "No"){
             
-            #combine county data to get single point per for cases/deaths
+            #combine state data to get single point per for cases/deaths
             nyt_state %>%
             group_by(date, covid_type) %>%
             summarize(y = sum(cumulative_number)) -> final_nyt_state
@@ -150,10 +178,36 @@ server <- function(input, output, session) {
 
     
     ## Define a reactive for subsetting the JHU data
-    jhu_data <- reactive({})
+    jhu_data_subset <- reactive({
+      
+      jhu_data %>%
+       filter(Country_or_Region == input$which_country/region) -> jhu_country
+      
+      if(input$facet_county == "No"){
+        
+        #combine state data to get single point per for cases/deaths
+        jhu_country %>%
+          group_by(date, covid_type) %>%
+          summarize(y = sum(cumulative_number)) -> final_jhu_country
+        
+      }
+      
+      final_jhu_country
+      
+    })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    jhu_plot <- renderPlot({})
+    output$jhu_plot <- renderPlot({
+      
+      jhu_data_subset() %>%
+        ggplot(aes(x = date, y = y, color=covid_type, group=covid_type)) +
+        geom_point() +
+        geom_line() +
+        scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) +
+        labs(x = "Date", y = "Cumulative number of cases", color = "Covid Data" ,
+             title= paste(input$which_country/region, "cases and deaths")) ->myjhu_plot
+      
+    })
     
 }
 

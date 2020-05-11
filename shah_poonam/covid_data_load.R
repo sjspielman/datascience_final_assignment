@@ -40,7 +40,7 @@ jhu_comfirmed_raw %>%
   #adding the columns Data and Cumlative number
   pivot_longer(c(-`Country/Region`, -`Province/State`, -Lat, -Long),
                names_to = "date",
-               values_to = "Cumulative_confirmed") %>%
+               values_to = "cases") %>%
   #Renaming the columns for jhu confirmed
   rename(Latitude = Lat,
          Province_or_State = `Province/State`,
@@ -52,7 +52,7 @@ jhu_death_raw %>%
   #adding the columns Data and Cumlative number
   pivot_longer(c(-`Province/State`, -`Country/Region`, -Lat, -Long),
                names_to = "date",
-               values_to = "Cumulative_death") %>%
+               values_to = "deaths") %>%
   #Renaming the columns for jhu death 
   rename(Latitude = Lat,
          Province_or_State = `Province/State`,
@@ -66,6 +66,6 @@ full_join(jhu_comfirmed_tidy, jhu_death_tidy) -> full_jhu
 
 # adding in the columns Cumulative_number
 full_jhu %>%
-  pivot_longer("Cumulative_death" : "Cumulative_confirmed", names_to = "covid_type", values_to = "cumulative_number")-> jhu_data
+  pivot_longer("deaths" : "cases", names_to = "covid_type", values_to = "cumulative_number")-> jhu_data
 
 
