@@ -4,9 +4,6 @@ library(lubridate) ## a tidyverse (but not core tidyverse) package for working w
 
 ## Define global variables ----------------------------------------------
 
-## viridis options, see: https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html
-#viridis_scheme_options <- c("viridis", "magma", "plasma", "inferno")
-
 ## array of USA states (for use with NYT data)
 usa_states <- c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Guam", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Northern Mariana Islands", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Puerto Rico", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virgin Islands", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")
 
@@ -37,29 +34,26 @@ jhu_comfirmed_raw <- read_csv(jhu_confirmed_global_url)
 
 jhu_death_raw <- read_csv(jhu_deaths_global_url)
 
-#Wraggling the jhn confirmed data
+#Wraggling the jhu confirmed data
 
 jhu_comfirmed_raw %>%
   #adding the columns Data and Cumlative number
-  
-  pivot_longer(c(-`Province/State`, -`Country/Region`, -Lat, -Long),
-               names_to = "Date",
-               values_to = "Cumulative_Number") %>%
-  
-  #Renmaing the columns for jhu confirmed
-  
-   rename(Latitude = Lat,
-          Province_or_State = `Province/State`,
-          Longitude = Long, 
-          Country_or_Region = `Country/Region`) -> jhu_comfirmed_tidy 
+  pivot_longer(c(-`Country/Region`, -`Province/State`, -Lat, -Long),
+               names_to = "date",
+               values_to = "Cumulative_confirmed") %>%
+  #Renaming the columns for jhu confirmed
+  rename(Latitude = Lat,
+         Province_or_State = `Province/State`,
+         Longitude = Long, 
+         Country_or_Region = `Country/Region`) -> jhu_comfirmed_tidy 
 
 #Wraggling the jhu death
 jhu_death_raw %>%
   #adding the columns Data and Cumlative number
   pivot_longer(c(-`Province/State`, -`Country/Region`, -Lat, -Long),
-               names_to = "Date",
-               values_to = "Cumulative_Number") %>%
-  #Renmaing the columns for jhu death 
+               names_to = "date",
+               values_to = "Cumulative_death") %>%
+  #Renaming the columns for jhu death 
   rename(Latitude = Lat,
          Province_or_State = `Province/State`,
          Longitude = Long, 
@@ -67,14 +61,11 @@ jhu_death_raw %>%
 
 
 #joined the two tidy jhu data
-full_join(jhu_comfirmed_tidy, jhu_comfirmed_tidy) -> full_jhu
+full_join(jhu_comfirmed_tidy, jhu_death_tidy) -> full_jhu
 
 
-
-
-#`covid_type` (A categorical variable containing either "cases" or "deaths")
-
+# adding in the columns Cumulative_number
 full_jhu %>%
-  pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number")-> jhu_data
+  pivot_longer("Cumulative_death" : "Cumulative_confirmed", names_to = "covid_type", values_to = "cumulative_number")-> jhu_data
 
 

@@ -30,6 +30,7 @@ ui <- shinyUI(
                         
                         colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "green"),
                         colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "black"), 
+                        
                         #Selecting up the select box
                         selectInput("which_state", # input$which_state
                                    "Which state would you like to plot?",
@@ -70,8 +71,8 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "purple"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "orange")
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "lawngreen"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "chocolate4")
                          
                      ), # closes JHU sidebarPanel     
                      
