@@ -37,34 +37,44 @@ jhu_comfirmed_raw <- read_csv(jhu_confirmed_global_url)
 
 jhu_death_raw <- read_csv(jhu_deaths_global_url)
 
-#Renaming the columns for jhu confirmed death
-jhu_comfirmed_raw %>%
-   rename(Latitude = Lat,
-          Province_or_State = `Province/State`,
-          Longitude = Long, 
-          Country_or_Region = `Country/Region`) %>%
-#adding in the Date and cumulative_number
-  pivot_longer(c(-Province_or_State, -Country_or_Region, -Latitude, -Longitude),
-               names_to = "Date",
-               values_to = "Cumulative_Number") -> jhu_comfirmed_tidy
+#Wraggling the jhn confirmed data
 
-#Renmaing the columns for jhu death 
-jhu_death_raw %>%
+jhu_comfirmed_raw %>%
+  #adding the columns Data and Cumlative number
+  
   pivot_longer(c(-`Province/State`, -`Country/Region`, -Lat, -Long),
                names_to = "Date",
                values_to = "Cumulative_Number") %>%
+  
+  #Renmaing the columns for jhu confirmed
+  
+   rename(Latitude = Lat,
+          Province_or_State = `Province/State`,
+          Longitude = Long, 
+          Country_or_Region = `Country/Region`) -> jhu_comfirmed_tidy 
+
+#Wraggling the jhu death
+jhu_death_raw %>%
+  #adding the columns Data and Cumlative number
+  pivot_longer(c(-`Province/State`, -`Country/Region`, -Lat, -Long),
+               names_to = "Date",
+               values_to = "Cumulative_Number") %>%
+  #Renmaing the columns for jhu death 
   rename(Latitude = Lat,
          Province_or_State = `Province/State`,
          Longitude = Long, 
          Country_or_Region = `Country/Region`) -> jhu_death_tidy
 
 
- # 2) A tibble of the JHU data *exactly called* `jhu_data` that should ultimately contain these final columns *that use these exact names*:
-  
-# `province_or_state`
-# `country_or_region`
-# `latitude`
-# `longitude`
-# `date`
-# `covid_type` (A categorical variable containing either "cases" or "deaths")
-# `cumulative_number` (The number associated with `covid_type`)
+#joined the two tidy jhu data
+full_join(jhu_comfirmed_tidy, jhu_comfirmed_tidy) -> full_jhu
+
+
+
+
+#`covid_type` (A categorical variable containing either "cases" or "deaths")
+
+full_jhu %>%
+  pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number")-> jhu_data
+
+
