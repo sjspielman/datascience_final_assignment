@@ -23,37 +23,44 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 ## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
 
 
-#nyt data tibble
-nyt_raw<-read_csv(nyt_usa_data_url) 
+#New York Times data tibble
 
+#reading in the data
+nyt_raw <-read_csv(nyt_usa_data_url) 
+
+#tidying the nyt_raw by making the two columns of covid_type and cumulative number
 nyt_raw %>%
   pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number") -> nyt_data
 
+
 #John Hopkins hosptial tibble
+
+#reading in the data
 jhu_comfirmed_raw <- read_csv(jhu_confirmed_global_url) 
 
 jhu_death_raw <- read_csv(jhu_deaths_global_url)
 
-#Wraggling the jhu confirmed data
+#Wraggling the jhu confirmed cases data
 
 jhu_comfirmed_raw %>%
-  #adding the columns Data and Cumlative number
+  #tidying the columns to add date and Cumlative number
   pivot_longer(c(-`Country/Region`, -`Province/State`, -Lat, -Long),
                names_to = "date",
                values_to = "cases") %>%
-  #Renaming the columns for jhu confirmed
+  #Renaming the columns 
   rename(Latitude = Lat,
          Province_or_State = `Province/State`,
          Longitude = Long, 
          Country_or_Region = `Country/Region`) -> jhu_comfirmed_tidy 
 
-#Wraggling the jhu death
+#Wraggling the jhu confirmed death data
+
 jhu_death_raw %>%
-  #adding the columns Data and Cumlative number
+  #tidying the columns to add date and Cumlative number
   pivot_longer(c(-`Province/State`, -`Country/Region`, -Lat, -Long),
                names_to = "date",
                values_to = "deaths") %>%
-  #Renaming the columns for jhu death 
+  #Renaming the columns 
   rename(Latitude = Lat,
          Province_or_State = `Province/State`,
          Longitude = Long, 
@@ -64,8 +71,13 @@ jhu_death_raw %>%
 full_join(jhu_comfirmed_tidy, jhu_death_tidy) -> full_jhu
 
 
-# adding in the columns Cumulative_number
+# tidying the columns to added Cumulative_number and covid_type
 full_jhu %>%
   pivot_longer("deaths" : "cases", names_to = "covid_type", values_to = "cumulative_number")-> jhu_data
+
+#recast the date columns for jhu_data
+
+jhu_data$date <- lubridate::mdy(jhu_data$date)
+
 
 
