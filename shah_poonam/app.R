@@ -139,12 +139,13 @@ server <- function(input, output, session) {
     output$nyt_plot <- renderPlot({
         nyt_data_subset() %>%
             ggplot(aes(x = date, y = y, color=covid_type, group=covid_type)) +
-                geom_point() +
+                geom_point(shape=1) +
                 geom_line() +
                 scale_color_manual(values = c(input$nyt_color_cases, input$nyt_color_deaths)) +
                 labs(x = "Date", y = "Cumulative number of cases", color = "Covid Type" ,
                      title= paste(input$which_state, "cases and deaths")) -> myplot
-        
+      
+
         #Dealing with user input$y_scale
         if(input$y_scale == "Log") {
             myplot <- myplot + scale_y_log10()
@@ -169,7 +170,8 @@ server <- function(input, output, session) {
                 legend.text = element_text(size = 15),
                 legend.title = element_text(size= 15, face = "bold"),
                 axis.title = element_text(size = 14, face = "bold"),
-                axis.text = element_text(size = 12))
+                axis.text = element_text(size = 12)) 
+       
                       
     })
     
@@ -200,7 +202,7 @@ server <- function(input, output, session) {
       
       jhu_data_subset() %>%
         ggplot(aes(x = date, y = y, color=covid_type, group=covid_type)) +
-        geom_point() +
+        geom_point(shape=1) +
         geom_line() +
         scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) +
         labs(x = "Date", y = "Cumulative number of cases", color = "Covid Type" ,

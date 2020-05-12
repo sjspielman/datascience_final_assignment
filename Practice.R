@@ -34,3 +34,17 @@ d <- as_date(17498)
 
 #mdy_hms(), mdy_hm(), mdy_h().
 #mdy_hms("11/28/2017 1:02:03") 
+
+
+
+library(plotly)
+iris %>%
+  ggplot(aes(x=Species, y=Sepal.Length)) +
+  geom_point()-> prac
+
+ggplotly(prac)
+
+
+
+fig1 <- plot_ly(midwest, x = ~percollege, color = ~state, type = "box")
+fig1
