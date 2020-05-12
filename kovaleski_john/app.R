@@ -43,7 +43,7 @@ ui <- shinyUI(
                                      choices = c("Linear","Log"),
                                      selected = "Linear"),
                         selectInput("which_theme",
-                                    "Which ggplot theme to use?",
+                                    "Which theme would you like to use?",
                                     choices = c("Classic", "Minimal", "Light", "Dark"),
                                     selected = "Classic")
                         
@@ -72,8 +72,12 @@ ui <- shinyUI(
                                       "Scale for Y-axis?",
                                       choices = c("Linear","Log"),
                                       selected = "Linear"),
+                        # dateRangeInput("dateRange_jhu",
+                       #                 "Select Date Range",
+                         #               start = "2020-01-22",
+                       #                 end   = Sys.Date()-2),
                          selectInput("which_theme_jhu",
-                                     "Which ggplot theme to use?",
+                                     "Which theme would you like to use?",
                                      choices = c("Classic", "Minimal", "Light", "Dark"),
                                      selected = "Dark")
                          
@@ -163,11 +167,13 @@ server <- function(input, output, session) {
         
         final_jhu_country
         
+        
     })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$jhu_plot <- renderPlot({
-        
+    
+    
         jhu_data_subset()%>%
             ggplot(aes(x=date, y= y, color= covid_type, group= covid_type))+
             geom_point() +
@@ -183,6 +189,7 @@ server <- function(input, output, session) {
         if(input$which_theme_jhu == "Light") myplot_jhu <- myplot_jhu + theme_light()
         if(input$which_theme_jhu == "Dark") myplot_jhu <- myplot_jhu + theme_dark()
 
+        
         myplot_jhu
         
         
