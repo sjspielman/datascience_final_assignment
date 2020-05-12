@@ -40,18 +40,8 @@ jhu_confirmed%>%
   
 jhudeaths%>%
 #all columns are identical, so bind_rows should combine the two JHU datasets cleanly.
-  bind_rows(jhuconfirmed)->jhu_data
+  bind_rows(jhuconfirmed)%>%
+  rename(country=`Country/Region`)->jhu_data
 #now to mutate the date character into a useable date to standardize with NYT.
-lubridate::as_date(jhu_data$date)->jhu_data$date
-nyt_data%>%
-  rename(total=cumulative_number)%>%
-  filter(state=="Washington")->nyt_state
+lubridate::mdy(jhu_data$date)->jhu_data$date
 
-
-ggplot(nyt_state, aes(x=date, y=total, color=covid_type, group=covid_type))+
-  geom_point()+
-  geom_line()+
-  scale_color_manual(values=c("red", "black"))+
-  labs(title="total cases and deaths")+
-  facet_wrap("county")
-?labs

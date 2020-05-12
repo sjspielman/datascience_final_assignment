@@ -13,6 +13,7 @@ library(shiny)
 library(shinythemes)
 library(tidyverse)
 library(colourpicker)
+library(ggthemes)
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
@@ -51,7 +52,10 @@ ui <- shinyUI(
                      sidebarPanel(
 
                          colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "#F04646"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "#423A3A")
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "#423A3A"),
+                         selectInput("country_choice", "Select a Country or Region to plot:", choices=world_countries_regions, selected= "Afghanistan"),
+                         selectInput("jhu_theme_choice", "Select a Plot Theme:", choices=c("Classic", "Economist", "Inverse Gray", "Stata"), selected= "Classic"),
+                         radioButtons("jhu_scale_choice", "Choose a scale for the plot:", choices=c("Linear", "Logarithmic"), selected="Linear")
                          
                      ), # closes JHU sidebarPanel     
                      
@@ -85,6 +89,7 @@ server <- function(input, output, session) {
     
     if(input$facet_choice=="Yes")
     {nyt_data%>%
+        filter(state==input$state_choice)%>%
         rename(total=cumulative_number)->nyt_state}
 
         nyt_state    
@@ -102,7 +107,7 @@ server <- function(input, output, session) {
         xlab("Date")+ ylab("Cumulative Cases")->nyt_plot
     
       if(input$facet_choice=="Yes"){ 
-        nyt_plot<-nyt_plot+facet_wrap("county")}
+        nyt_plot<-nyt_plot+facet_wrap(~county)}
       
     if(input$scale_choice=="Logarithmic"){
        nyt_plot<-nyt_plot+scale_y_log10()}           
@@ -128,10 +133,46 @@ server <- function(input, output, session) {
 
     
     ## Define a reactive for subsetting the JHU data
-    jhu_data_subset <- reactive({})
+    jhu_data_subset <- reactive({
+      jhu_data%>%
+        filter(country==input$country_choice)->jhu_country
+        
+        
+        jhu_country
+      
+    })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$jhu_plot <- renderPlot({})
+    output$jhu_plot <- renderPlot({
+      jhu_data_subset()%>%
+        ggplot(aes(x=date, y=cumulative_number, color=covid_type, group=covid_type))+
+        geom_line()+
+        geom_point()+
+        scale_color_manual(values=c(input$jhu_color_cases, input$jhu_color_deaths))+
+        labs(title=paste("Total COVID-19 Cases and Deaths in", input$country_choice))+
+        xlab("Date")+ ylab("Cumulative Cases")->jhu_plot
+      
+      
+      if(input$jhu_theme_choice=="Classic") {jhu_plot<-jhu_plot+ theme_classic()}
+      
+      if(input$jhu_theme_choice=="Economist") {jhu_plot<-jhu_plot+ theme_economist()}
+      
+      if(input$jhu_theme_choice=="Inverse Gray") {jhu_plot<-jhu_plot+ theme_igray()}
+      
+      if(input$jhu_theme_choice=="Stata") {jhu_plot<-jhu_plot+ theme_stata()}
+      
+      
+      if(input$jhu_scale_choice=="Logarithmic"){
+        jhu_plot<-jhu_plot+scale_y_log10()}  
+      
+      
+      
+      jhu_plot
+      
+      
+      
+      
+    })
     
 }
 
