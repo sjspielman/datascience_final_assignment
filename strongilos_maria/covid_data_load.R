@@ -1,5 +1,7 @@
 library(tidyverse)
-library(lubridate) ## a tidyverse (but not core tidyverse) package for working with dates more easily
+library(lubridate)
+library(rsconnect)
+## a tidyverse (but not core tidyverse) package for working with dates more easily
 
 
 ## Define global variables ----------------------------------------------
@@ -52,7 +54,7 @@ jhu_join_raw%>%
 
 
 
-#  work_damn_it<- str_replace_all(jhu_data, "/", "-")
+
   
 
 

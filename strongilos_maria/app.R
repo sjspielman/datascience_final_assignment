@@ -13,6 +13,7 @@ library(shiny)
 library(shinythemes)
 library(tidyverse)
 library(colourpicker)
+library(rsconnect)
 
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
@@ -36,7 +37,7 @@ ui <- shinyUI(
                                     choices = usa_states,
                                     selected = "New Jersey"),
                         radioButtons("facet_county",
-                                     "Facet by county?",
+                                     "Would you like to facet by county?",
                                      choices = c("No", "Yes"),
                                      selected ="Yes"),
                         radioButtons("y_scale",
@@ -46,7 +47,7 @@ ui <- shinyUI(
                         selectInput("which_theme",
                                     "Which theme would you like to use?",
                                     choices = c("classic", "linedraw","void","dark"),
-                                    selected = "classic")
+                                    selected = "linedraw")
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
@@ -73,20 +74,20 @@ ui <- shinyUI(
                                       "Would you like to facet by province or state? (if available)",
                                       choices = c("No", "Yes"),
                                       selected ="Yes"),
-                         radioButtons("y_scale",
+                         radioButtons("jhu_y_scale",
                                       "Which scale would you like for the y-axis?",
                                       choices =c ("linear", "log"),
                                       selected ="linear"),
                          selectInput("which_theme",
                                      "Which theme would you like to use?",
                                      choices = c("classic", "linedraw","void","dark"),
-                                     selected = "classic")
+                                     selected = "linedraw")
                          
                      ), # closes JHU sidebarPanel     
                      
                      # All output for JHU goes in here:
                      mainPanel(
-                        plotOutput("jhu_plot")
+                        plotOutput("jhu_plot", height = "700px")
                      ) # closes JHU mainPanel     
             ) # closes tabPanel for JHU data
     ) # closes navbarPage
@@ -131,7 +132,10 @@ server<- function(input, output, session) {
                    geom_point() +
                    geom_line() +
                    scale_color_manual(values= c(input$nyt_color_cases, input$nyt_color_deaths))+
-                labs(title= input$which_state, "cases and deaths")-> myplot
+                labs(title= input$which_state, "Cases and Deaths",
+                     x= "Date",
+                     y= "Number of Individuals",
+                     color= "Covid Type")-> myplot
      #deal with user log with input log scale
       if(input$y_scale == "log"){
          myplot <- myplot + scale_y_log10()
@@ -185,13 +189,16 @@ server<- function(input, output, session) {
         geom_point() +
         geom_line() +
         scale_color_manual(values= c(input$jhu_color_cases, input$jhu_color_deaths))+
-        labs(title= input$which_country, "cases and deaths")-> myplotj
+        labs(title= input$which_country, "Cases and Deaths",
+             x= "Date",
+             y= "Number of Individuals",
+             color= "Covid Type")-> myplotj
       #deal with user log with input log scale
       
-      if(input$y_scale == "log"){
-        myplotj <- myplotj + scale_y_log10()
+      if(input$jhu_y_scale == "log"){
+        myplotj<- myplotj + scale_y_log10()
         
-      }
+        }
       #facet by state/province
       if(input$facet_state == "Yes") myplotj <- myplotj + facet_wrap(~province_or_state)
       
