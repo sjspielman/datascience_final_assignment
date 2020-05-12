@@ -38,13 +38,13 @@ ui <- shinyUI(
                                    selected = "Maryland"),
                         
                         #setting up the radio buttons for facet_county
-                        radioButtons("facet_county",
+                        radioButtons("facet_county", # input$facet_county
                                      "Show counties across panels, or pool all counties",
                                      choices = c('No', "Yes"),
                                      selected = "No"),
                         
                        #setting up the radio buttons for y scale
-                        radioButtons("y_scale",
+                        radioButtons("y_scale", #input$y_scale
                                      "Scale for Y-axis?",
                                      choices = c('Linear', "Log"),
                                      selected = "Linear"),
@@ -74,33 +74,32 @@ ui <- shinyUI(
                          colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "lightblue4"),
                          colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "chocolate4"),
                          
+                         #Selecting up the select box for diferent country
+                         
                          #Selecting up the select box for diferent country/region
                          
-                                    selectInput("which_country/region", # input$which_country/region
-                                    "Which country/region would you like to plot?",
-                                    choices = world_countries_regions,
-                                    selected = "Sweden"),
+                         selectInput("which_country", # input$which_country
+                                     "Which country/region would you like to plot?",
+                                     choices = world_countries_regions,
+                                     selected = "Sweden"),
                          
                          #setting up the radio buttons for county
-                         radioButtons("facet_county",
+                         radioButtons("facet_region",  #input$facet_region
                                       "Show counties across panels, or pool all counties",
                                       choices = c('No', "Yes"),
                                       selected = "No"),
                          
                          #setting up the radio buttons for y scale
-                         radioButtons("y_scale",
+                         radioButtons("y_scale_jhu",   #input$y_scale_jhu
                                       "Scale for Y-axis?",
                                       choices = c('Linear', "Log"),
                                       selected = "Linear"),
                          
-                         #Select box for chanigng the themes
+                         #Select box for changing the themes
                          selectInput("choose_theme", # input$choose_theme
-                                     "Which ggplot theme to use?",
+                                     "Choose a ggplot theme to use?",
                                      choices = c("Classic", "Minimal", "Dark", "Light"),
                                      selected = "Classic")
-                         
-
-                         
                          
                      ), # closes JHU sidebarPanel     
                      
@@ -173,7 +172,6 @@ server <- function(input, output, session) {
     })
     
 
-    
     ## All server logic for JHU goes here ------------------------------------------
 
     
@@ -181,9 +179,10 @@ server <- function(input, output, session) {
     jhu_data_subset <- reactive({
       
       jhu_data %>%
-       filter(Country_or_Region == input$which_country/region) -> jhu_country
+        group_by(date, covid_type) %>%
+       filter(Country_or_Region == input$which_country) -> jhu_country
       
-      if(input$facet_county == "No"){
+      if(input$facet_region == "No"){
         
         #combine state data to get single point per for cases/deaths
         jhu_country %>%
@@ -192,6 +191,10 @@ server <- function(input, output, session) {
         
       }
       
+      if(input$facet_region == "Yes") {
+        jhu_country %>%
+          rename(y=cumulative_number) -> final_jhu_country
+      }
       final_jhu_country
       
     })
@@ -205,7 +208,28 @@ server <- function(input, output, session) {
         geom_line() +
         scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) +
         labs(x = "Date", y = "Cumulative number of cases", color = "Covid Data" ,
-             title= paste(input$which_country/region, "cases and deaths")) ->myjhu_plot
+             title= paste(input$which_country, "cases and deaths")) -> myjhu_plot
+      
+  #Dealing with input$y_scale_jhu    
+      if(input$y_scale_jhu == "Log") {
+        myjhu_plot <- myjhu_plot + scale_y_log10()
+      }
+      #Dealing with input$facet_wrap
+      
+      if(input$facet_region == "Yes") myjhu_plot <- myjhu_plot + facet_wrap(~Province_or_State, scales = "free")
+      
+      #dealing with the input$choose_theme choice
+      
+      if(input$choose_theme == "Classic") myjhu_plot <- myjhu_plot + theme_classic()
+      
+      if(input$choose_theme == "Minimal") myjhu_plot <- myjhu_plot + theme_minimal()
+      
+      if(input$choose_theme == "Dark") myjhu_plot <- myjhu_plot + theme_dark()  
+      
+      if(input$choose_theme == "Light") myjhu_plot <- myjhu_plot + theme_light()
+      
+     # return the plot
+      myjhu_plot + theme(legend.position = "bottom")
       
     })
     
