@@ -60,7 +60,7 @@ ui <- shinyUI(
                     
                     # All output for NYT goes in here:
                     mainPanel(
-                        plotOutput("nyt_plot", height = "400px")
+                        plotOutput("nyt_plot", height = "400px", width = "800px")
                     ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function  
             ), # closes tabPanel for NYT data
             
@@ -105,7 +105,7 @@ ui <- shinyUI(
                      
                      # All output for JHU goes in here:
                      mainPanel(
-                        plotOutput("jhu_plot")
+                        plotOutput("jhu_plot", height = "400px", width = "800px")
                      ) # closes JHU mainPanel     
             ) # closes tabPanel for JHU data
     ) # closes navbarPage
@@ -147,7 +147,7 @@ server <- function(input, output, session) {
                 geom_point() +
                 geom_line() +
                 scale_color_manual(values = c(input$nyt_color_cases, input$nyt_color_deaths)) +
-                labs(x = "Date", y = "Cumulative number of cases", color = "Covid Data" ,
+                labs(x = "Date", y = "Cumulative number of cases", color = "Covid Type" ,
                      title= paste(input$which_state, "cases and deaths")) -> myplot
         
         #Dealing with user input$y_scale
@@ -195,6 +195,7 @@ server <- function(input, output, session) {
         jhu_country %>%
           rename(y=cumulative_number) -> final_jhu_country
       }
+      
       final_jhu_country
       
     })
@@ -207,7 +208,7 @@ server <- function(input, output, session) {
         geom_point() +
         geom_line() +
         scale_color_manual(values = c(input$jhu_color_cases, input$jhu_color_deaths)) +
-        labs(x = "Date", y = "Cumulative number of cases", color = "Covid Data" ,
+        labs(x = "Date", y = "Cumulative number of cases", color = "Covid Type" ,
              title= paste(input$which_country, "cases and deaths")) -> myjhu_plot
       
   #Dealing with input$y_scale_jhu    
@@ -234,8 +235,6 @@ server <- function(input, output, session) {
     })
     
 }
-
-
 
 
 
