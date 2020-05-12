@@ -14,7 +14,6 @@ library(shinythemes)
 library(tidyverse)
 library(colourpicker)
 library(tvthemes)
-library(ggplot2)
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
@@ -40,11 +39,11 @@ ui <- shinyUI(
                                      "Display all Counties",
                                      choices = c("No","Yes"),
                                      selected = "No"),
-                        radioButtons("y_scale",
+                        radioButtons("y_scale_nyt",
                                      "Select y-axis Scale",
                                      choices = c("Linear","Log"),
                                      selected = "Linear"),
-                        selectInput("which_theme",
+                        selectInput("which_theme_nyt",
                                     "Select ggplot Theme",
                                     choices = c("Classic","RickAndMorty","Avatar", "Brooklyn99", "ParksAndRec"),
                                     selected = "Classic")
@@ -71,11 +70,11 @@ ui <- shinyUI(
                                      "Select Country/Region",
                                      choices = world_countries_regions, 
                                      selected = "US"),
-                         radioButtons("y_scale",
+                         radioButtons("y_scale_jhu",
                                       "Select y-axis Scale",
                                       choices = c("Linear","Log"),
                                       selected = "Linear"),
-                         selectInput("which_theme",
+                         selectInput("which_theme_jhu",
                                     "Select ggplot Theme",
                                     choices = c("Classic","SpongeBob","Simpsons", "Dark"),
                                     selected = "Classic")
@@ -125,31 +124,32 @@ server <- function(input, output, session) {
             geom_point()+
             geom_line() +
             scale_color_manual(values =c(input$nyt_color_cases, input$nyt_color_deaths)) +
-                labs(title= paste(input$which_state, "Cases and Deaths"), x="Date", y= "Number of Occurences", color = "Covid Type")+
-            theme(axis.text = element_text(size = 12), 
-                  axis.title = element_text(size=14),
-                  plot.title = element_text(size = 18))-> my_plot
+                labs(title= paste(input$which_state, "Cases and Deaths"), x="Date", y= "Number of Occurences", color = "Covid Type")-> my_plot
             
             
         ##Input y scale choice    
-        if(input$y_scale =="Log") {
+        if(input$y_scale_nyt =="Log") {
           my_plot <- my_plot + scale_y_log10()  
         }   
         
             
         #Input which theme choice
-        if(input$which_theme == "Classic") my_plot <- my_plot + theme_classic()
-        if(input$which_theme == "Brooklyn99") my_plot <- my_plot + theme_brooklyn99()
-        if(input$which_theme == "RickAndMorty") my_plot <- my_plot + theme_rickAndMorty()
-        if(input$which_theme == "Avatar") my_plot <- my_plot + theme_avatar()
-        if(input$which_theme == "ParksAndRec") my_plot <- my_plot + theme_parksAndRec_light()
+        if(input$which_theme_nyt == "Classic") my_plot <- my_plot + theme_classic()
+        if(input$which_theme_nyt == "Brooklyn99") my_plot <- my_plot + theme_brooklyn99()
+        if(input$which_theme_nyt == "RickAndMorty") my_plot <- my_plot + theme_rickAndMorty()
+        if(input$which_theme_nyt == "Avatar") my_plot <- my_plot + theme_avatar()
+        if(input$which_theme_nyt == "ParksAndRec") my_plot <- my_plot + theme_parksAndRec_light()
         
         #Input facet_county
         if(input$facet_county == "Yes") my_plot <- my_plot+ facet_wrap(~county, scales = "free_y")
             
        
         #returns scale, add custom settings such as theme
-        my_plot
+        my_plot+
+            theme(axis.text = element_text(size = 11, face= "bold.italic"), 
+                  axis.title = element_text(size=14,face= "bold.italic"),
+                  plot.title = element_text(size = 18,face= "bold.italic"),
+                  legend.title = element_text(size = 11, face= "bold.italic"))
             
             
         })
@@ -161,10 +161,42 @@ server <- function(input, output, session) {
 
     
     ## Define a reactive for subsetting the JHU data
-    jhu_data_subset <- reactive({})
+    jhu_data_subset <- reactive({
+        jhu_data %>%
+            filter(country_or_region == input$which_country)-> jhu_global
+    
+    jhu_global    
+    })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    jhu_plot <- renderPlot({})
+    output$jhu_plot <- renderPlot({
+        jhu_data_subset() %>%
+            ggplot(aes(x= date, y= cumulative_number, group= covid_type, color= covid_type)) +
+            geom_point()+
+            geom_line() +
+            scale_color_manual(values =c(input$jhu_color_cases, input$jhu_color_deaths)) +
+            labs(title= paste(input$which_country, "Cases and Deaths"), x="Date", y= "Number of Occurences", color = "Covid Type")-> final_jhu_plot
+        
+        #Y axis input
+        if(input$y_scale_jhu =="Log") {
+            final_jhu_plot <- final_jhu_plot + scale_y_log10()  
+        }
+        
+        #theme input
+        if(input$which_theme_jhu == "Classic") final_jhu_plot <- final_jhu_plot + theme_classic()
+        if(input$which_theme_jhu == "Dark") final_jhu_plot <- final_jhu_plot + theme_dark()
+        if(input$which_theme_jhu == "SpongeBob") final_jhu_plot <- final_jhu_plot + theme_spongeBob()
+        if(input$which_theme_jhu == "Simpsons") final_jhu_plot <- final_jhu_plot + theme_simpsons()
+        
+        
+        #returning the plot
+        final_jhu_plot +
+            theme(axis.text = element_text(size = 11, face= "bold.italic"), 
+                  axis.title = element_text(size=14,face= "bold.italic"),
+                  plot.title = element_text(size = 18,face= "bold.italic"),
+                  legend.title = element_text(size = 11, face= "bold.italic"))
+         
+         })
     
 }
 
