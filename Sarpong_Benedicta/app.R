@@ -59,8 +59,22 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "violetred"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "pink")
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "pink"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "blue"), 
+                         selectInput("which_country", 
+                                     "Which country or region would you like to plot?",
+                                     choices=country_or_region, 
+                                     selected="Canada"), 
+                         radioButtons("y_scale",
+                                      "Y axis scale?", 
+                                      choices=c("Linear","Log"), 
+                                      selected="Linear"), 
+                         selectInput("which_theme", 
+                                     "Which ggplot theme woulld youk like to use?",
+                                     choices=c("Classic", "Minimal", "Dark", "Grey"), 
+                                     selected="Classic"), 
+                         
+                         
                          
                      ), # closes JHU sidebarPanel     
                      
@@ -122,10 +136,44 @@ server <- function(input, output, session) {
 
     
     ## Define a reactive for subsetting the JHU data
-    jhu_data_subset <- reactive({})
+    jhu_data_subset <- reactive({
+         jhu_data%>%
+            filter(country_or_region==input$which_country)%>% #we want the user to be able to pick whatever state they want 
+            group_by(date, covid_type)%>%
+            summarize(total_county_day=sum(cumulative_number))
+        
+        
+        
+    })
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$jhu_plot <- renderPlot({})
+    output$jhu_plot <- renderPlot({
+        jhu_data_subset()%>% #have to put () bc its a reactive
+            ggplot(aes(x=date, y=total_county_day, color=covid_type, group=covid_type))+
+            geom_point()+ 
+            geom_line()+
+            scale_color_manual(values =c(input$nyt_color_cases , input$nyt_color_deaths)) +
+            labs(title=paste(input$which_country, "cases and deaths"), y="Cumulative count")->jhu_myplot
+        if(input$y_scale=="Log"){
+            jhu_myplot<-jhu_myplot+scale_y_log10() #if user picks log use log scale 
+            
+        }
+        
+        if(input$which_theme=="Classic"){
+            nyt_myplot<-jhu_myplot+theme_classic()}
+        if(input$which_theme=="Dark"){
+            nyt_myplot<-jhu_myplot+theme_dark()}
+        if(input$which_theme=="Minimal"){
+            nyt_myplot<-jhu_myplot+theme_minimal()}
+        if(input$which_theme=="Grey"){
+            nyt_myplot<-jhu_myplot+theme_grey()}
+        
+        jhu_myplot+theme(text = element_text(size=16)) #change axis sizes 
+        
+        
+        
+        
+    })
     
 }
 

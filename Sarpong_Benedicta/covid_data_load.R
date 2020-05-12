@@ -26,10 +26,29 @@ nyt_raw<-read_csv(nyt_usa_data_url)
 nyt_raw%>%
   pivot_longer(cases:deaths, names_to="covid_type", values_to="cumulative_number")->nyt_data #need to change cases and death to covid type and cumulitive #
 
+jhu_cases<-read_csv(jhu_confirmed_global_url)
+jhu_cases%>%
+  pivot_longer(
+    cols=ends_with("20"),names_to="date", values_to="cases")->cases 
+
+jhu_deaths<-read_csv(jhu_deaths_global_url )
+jhu_deaths%>%
+  pivot_longer(
+    cols=ends_with("20"),names_to="date", values_to="deaths")->deaths
+
+left_join(cases,deaths)%>%
+  pivot_longer(cases:deaths, names_to="covid_type", values_to="cumulative_number")%>%
+  rename(Longitude=Long, 
+         Latitude=Lat, 
+         province_or_state="Province/State",
+         country_or_region="Country/Region")->jhu_data 
+#jhu_data$date<-lubridate::as_date(jhu_data$date)
+  
 
 
 
 
 
-# NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
+
+  # NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
 
