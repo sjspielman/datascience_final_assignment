@@ -21,7 +21,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 # UI --------------------------------
 ui <- shinyUI(
         navbarPage( theme = shinytheme("cyborg"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "covid stuff", ### Replace title with something reasonable
+                   title = "Covid-19 Cases and Deaths", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -29,22 +29,22 @@ ui <- shinyUI(
                     # All user-provided input for NYT goes in here:
                     sidebarPanel(
                         
-                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "red"),
+                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "green"),
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "black"),
                         selectInput("which_state", ##input$which_state,
-                                    "which state would like to plot?",
+                                    "Which state would like to plot?",
                                     choices = usa_states,
-                                    selected = "Ohio"),
+                                    selected = "New Jersey"),
                         radioButtons("facet_county",
                                      "Facet by county?",
                                      choices = c("No", "Yes"),
-                                     selected ="No"),
+                                     selected ="Yes"),
                         radioButtons("y_scale",
-                                     "scale for y-axis?",
+                                     "Which scale would you like for the y-axis?",
                                      choices =c ("linear", "log"),
                                      selected ="linear"),
                         selectInput("which_theme",
-                                    "which ggplot theme to use?",
+                                    "Which theme would you like to use?",
                                     choices = c("classic", "linedraw","void","dark"),
                                     selected = "classic")
                         
@@ -63,22 +63,22 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "purple"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "orange"),
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "pink"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "blue"),
                          selectInput("which_country", ##input$which_state,
-                                     "Which Country would like to plot?",
+                                     "Which country would like to plot?",
                                      choices = world_countries_regions,
-                                     selected = "Albania"),
+                                     selected = "Canada"),
                          radioButtons("facet_state",
-                                      "Facet by county?",
+                                      "Would you like to facet by province or state? (if available)",
                                       choices = c("No", "Yes"),
-                                      selected ="No"),
+                                      selected ="Yes"),
                          radioButtons("y_scale",
-                                      "scale for y-axis?",
+                                      "Which scale would you like for the y-axis?",
                                       choices =c ("linear", "log"),
                                       selected ="linear"),
                          selectInput("which_theme",
-                                     "which ggplot theme to use?",
+                                     "Which theme would you like to use?",
                                      choices = c("classic", "linedraw","void","dark"),
                                      selected = "classic")
                          
@@ -187,11 +187,13 @@ server<- function(input, output, session) {
         scale_color_manual(values= c(input$jhu_color_cases, input$jhu_color_deaths))+
         labs(title= input$which_country, "cases and deaths")-> myplotj
       #deal with user log with input log scale
+      
       if(input$y_scale == "log"){
         myplotj <- myplotj + scale_y_log10()
+        
       }
       #facet by state/province
-      if(input$facet_state == "Yes") myplotj <- myplotj + facet_wrap(~`Province/State`)
+      if(input$facet_state == "Yes") myplotj <- myplotj + facet_wrap(~province_or_state)
       
       ### deal with input$which_theme choice
       
