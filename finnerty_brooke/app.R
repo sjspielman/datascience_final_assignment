@@ -14,6 +14,7 @@ library(shinythemes)
 library(tidyverse)
 library(colourpicker)
 library(tvthemes)
+library(ggplot2)
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
@@ -124,7 +125,10 @@ server <- function(input, output, session) {
             geom_point()+
             geom_line() +
             scale_color_manual(values =c(input$nyt_color_cases, input$nyt_color_deaths)) +
-                labs(title= paste(input$which_state, "cases and deaths")) -> my_plot #adjust font size
+                labs(title= paste(input$which_state, "Cases and Deaths"), x="Date", y= "Number of Occurences", color = "Covid Type")+
+            theme(axis.text = element_text(size = 12), 
+                  axis.title = element_text(size=14),
+                  plot.title = element_text(size = 18))-> my_plot
             
             
         ##Input y scale choice    
