@@ -43,3 +43,15 @@ jhudeaths%>%
   bind_rows(jhuconfirmed)->jhu_data
 #now to mutate the date character into a useable date to standardize with NYT.
 lubridate::as_date(jhu_data$date)->jhu_data$date
+nyt_data%>%
+  rename(total=cumulative_number)%>%
+  filter(state=="Washington")->nyt_state
+
+
+ggplot(nyt_state, aes(x=date, y=total, color=covid_type, group=covid_type))+
+  geom_point()+
+  geom_line()+
+  scale_color_manual(values=c("red", "black"))+
+  labs(title="total cases and deaths")+
+  facet_wrap("county")
+?labs

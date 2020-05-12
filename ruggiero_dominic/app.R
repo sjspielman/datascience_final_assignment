@@ -20,7 +20,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 # UI --------------------------------
 ui <- shinyUI(
         navbarPage( # theme = shinytheme("default"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
+                   title = "Visualization of COVID-19 Cases and Deaths, Domestic and Worldwide", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -28,8 +28,12 @@ ui <- shinyUI(
                     # All user-provided input for NYT goes in here:
                     sidebarPanel(
                         
-                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value = "blue"),
-                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "red")
+                        colourpicker::colourInput("nyt_color_cases", "Color for plotting COVID cases:", value ="red"),
+                        colourpicker::colourInput("nyt_color_deaths", "Color for plotting COVID deaths:", value = "black"),
+                        selectInput("state_choice", "Select a state to plot:", choices=usa_states, selected= "Alabama"),
+                        selectInput("theme_choice", "Choose a plot theme:", choices=c("Classic","Gray", "Light", "Minimal"), selected="Classic"),
+                        selectInput("facet_choice", "Display individual counties?", choices=c("Yes","No"), selected="No"),
+                        radioButtons("scale_choice", "Choose a scale for the plot:", choices=c("Linear", "Logarithmic"), selected="Linear")
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
@@ -46,8 +50,8 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "purple"),
-                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "orange")
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "#F04646"),
+                         colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "#423A3A")
                          
                      ), # closes JHU sidebarPanel     
                      
@@ -70,10 +74,52 @@ server <- function(input, output, session) {
     ## All server logic for NYT goes here ------------------------------------------
     
     ## Define a reactive for subsetting the NYT data
-    nyt_data_subset <- reactive({})
+    nyt_data_subset <- reactive({
+    nyt_data%>%
+        filter(state==input$state_choice)->nyt_state
+    if(input$facet_choice=="No")    
+    {nyt_data%>%
+        filter(state==input$state_choice)%>%
+        group_by(date, covid_type)%>%
+        summarize(total= sum(cumulative_number))->nyt_state}
+    
+    if(input$facet_choice=="Yes")
+    {nyt_data%>%
+        rename(total=cumulative_number)->nyt_state}
+
+        nyt_state    
+
+})
     
     ## Define your renderPlot({}) for NYT panel that plots the reactive variable. ALL PLOTTING logic goes here.
-    output$nyt_plot <- renderPlot({})
+    output$nyt_plot <- renderPlot({
+        nyt_data_subset()%>%
+        ggplot(aes(x=date, y=total, color=covid_type, group=covid_type))+
+                   geom_point()+
+                   geom_line()+
+                   scale_color_manual(values=c(input$nyt_color_cases, input$nyt_color_deaths))+
+                   labs(title=paste("Total COVID-19 Cases and Deaths in", input$state_choice))+
+        xlab("Date")+ ylab("Cumulative Cases")->nyt_plot
+    
+      if(input$facet_choice=="Yes"){ 
+        nyt_plot<-nyt_plot+facet_wrap("county")}
+      
+    if(input$scale_choice=="Logarithmic"){
+       nyt_plot<-nyt_plot+scale_y_log10()}           
+        
+    if(input$theme_choice=="Classic") {nyt_plot<-nyt_plot+ theme_classic()}
+    
+    if(input$theme_choice=="Gray") {nyt_plot<-nyt_plot+ theme_gray()}
+    if(input$theme_choice=="Light") {nyt_plot<-nyt_plot+ theme_light()}
+    if(input$theme_choice=="Minimal") {nyt_plot<-nyt_plot+ theme_minimal()}
+    
+
+   
+    
+            
+    nyt_plot
+  
+  })
     
     
     
