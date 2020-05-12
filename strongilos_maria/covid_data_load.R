@@ -3,7 +3,7 @@ library(lubridate) ## a tidyverse (but not core tidyverse) package for working w
 
 
 ## Define global variables ----------------------------------------------
-
+#maria was here
 # array of USA states (for use with NYT data)
 usa_states <- c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Guam", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Northern Mariana Islands", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Puerto Rico", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virgin Islands", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")
 
@@ -16,13 +16,35 @@ nyt_usa_data_url <- "https://raw.githubusercontent.com/nytimes/covid-19-data/mas
 ## URL where Johns Hopkins University data is stored and regularly updated
 jhu_top_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/"
 jhu_confirmed_global_url <- paste0(jhu_top_url, "time_series_covid19_confirmed_global.csv")
-jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_global.csv")
+jhu_deaths_global_url <- paste0(jhu_top_url, "time_series_covid19_deaths_global.csv")
 
 
 ## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
 
+nyt_raw<- read_csv(nyt_usa_data_url)
+
+nyt_raw%>%
+  pivot_longer(cases:deaths, names_to= "covid_type", values_to= "cumulative_number")->nyt_data
+
+#jhu_data same thing
+
+jhu_confirmed_raw<- read_csv(jhu_confirmed_global_url)
+
+jhu_deaths_raw<- read_csv(jhu_deaths_global_url)
+
+jhu_confirmed_raw%>%
+pivot_longer(c(-'Country/Region', -'Province/State',-Lat,-Long), names_to = "Date", values_to = "cases")-> jhu_confirmed_data 
+
+jhu_deaths_raw%>%
+  pivot_longer(c(-'Country/Region', -'Province/State',-Lat,-Long), names_to = "Date", values_to = "deaths") -> jhu_deaths_data
 
 
+jhu_join_raw<- full_join(jhu_confirmed_data, jhu_deaths_data)
 
+jhu_join_raw%>%
+  pivot_longer(cases:deaths, names_to= "covid_type", values_to= "cumulative_number") -> jhu_data1
 
-# NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
+jhu_data1 %>%
+  str_replace_all(Date, "/", "-") -> yes
+
+# NOTE: You do NOT need to save  delete before submitany data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
