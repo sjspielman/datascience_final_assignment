@@ -27,8 +27,6 @@ nyt_raw <- read_csv(nyt_usa_data_url)
 nyt_raw %>%  #USA DATA
   pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number") -> nyt_data
 
-nyt_data %>%
-  mutate(cumulative_number = cumulative_number + 1e-10) -> nyt_data
 
 ##GLOBAL DATA(jhu)
 
@@ -37,15 +35,21 @@ jhu_confirmed <- read_csv(jhu_confirmed_global_url)
 jhu_deaths <- read_csv(jhu_deaths_global_url)
   
 jhu_confirmed %>%
-  pivot_longer(`1/22/20`:`5/5/20`, names_to = "date", values_to = "cases") -> jhu_cases
+  rename(province_or_state =`Province/State`) %>%
+  rename(country_or_region = `Country/Region`)%>%
+  pivot_longer(c(-province_or_state,-country_or_region,-Long, -Lat), names_to = "date", values_to = "cases") -> jhu_cases
 
 jhu_deaths %>%
-  pivot_longer(`1/22/20`:`5/5/20`, names_to = "date", values_to = "deaths") -> jhu_deaths
+  rename(province_or_state =`Province/State`) %>%
+  rename(country_or_region = `Country/Region`)%>%
+  pivot_longer(c(-province_or_state,-country_or_region,-Long, -Lat), names_to = "date", values_to = "deaths") -> jhu_fatalities
+  
 
 
-full_join(jhu_cases,jhu_deaths) %>%
+full_join(jhu_cases,jhu_fatalities) %>%
   pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number")-> jhu_data
 
 jhu_data$date <- lubridate::mdy(jhu_data$date)
 
 # NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
+
