@@ -32,8 +32,10 @@ jhu_confirmed<-read_csv(jhu_confirmed_global_url)
 jhu_deaths%>%
 #by using starts with and all digits, we can assure that all dates, regardless of how many, are selected, then pivot to create a date column and the cumulative number to standardize by.
   pivot_longer(cols=starts_with(c('1','2','3','4','5','6','7','8','9')), names_to="date", values_to="cumulative_number")%>%
+  #create a new column identifying this as the cumulative total for deaths.
   mutate(covid_type="deaths")->jhudeaths
 
+#repeat the process for cumulative cases, and add a column identifying this as cases.
 jhu_confirmed%>%
   pivot_longer(cols=starts_with(c('1','2','3','4','5','6','7','8','9')), names_to="date", values_to="cumulative_number")%>%
   mutate(covid_type="cases")->jhuconfirmed
@@ -42,6 +44,8 @@ jhudeaths%>%
 #all columns are identical, so bind_rows should combine the two JHU datasets cleanly.
   bind_rows(jhuconfirmed)%>%
   rename(country=`Country/Region`)->jhu_data
-#now to mutate the date character into a useable date to standardize with NYT.
+#now to mutate the date character into a useable date to standardize with NYT, specifying the date format provided.
 lubridate::mdy(jhu_data$date)->jhu_data$date
+
+?plotOutput
 
