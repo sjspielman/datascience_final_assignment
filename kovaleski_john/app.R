@@ -19,8 +19,8 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 
 # UI --------------------------------
 ui <- shinyUI(
-        navbarPage( # theme = shinytheme("default"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
+        navbarPage(  theme = shinytheme("cyborg"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
+                   title = "The Kovaleski Covid-19 Tracker", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -44,14 +44,14 @@ ui <- shinyUI(
                                      selected = "Linear"),
                         selectInput("which_theme",
                                     "Which ggplot theme to use?",
-                                    choices = c("Classic", "Minimal"),
+                                    choices = c("Classic", "Minimal", "Light", "Dark"),
                                     selected = "Classic")
                         
                     ), # closes NYT sidebarPanel. Note: we DO need a comma here, since the next line opens a new function     
                     
                     # All output for NYT goes in here:
                     mainPanel(
-                        plotOutput("nyt_plot", height = "1000px")
+                        plotOutput("nyt_plot", height = "800px")
                     ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function  
             ), # closes tabPanel for NYT data
             
@@ -126,8 +126,8 @@ server <- function(input, output, session) {
         # Choices for theme MAKE SURE THERES 4
         if(input$which_theme == "Classic") myplot <- myplot + theme_classic()
         if(input$which_theme == "Minimal") myplot <- myplot + theme_minimal()
-        
-        
+        if(input$which_theme == "Light") myplot <- myplot + theme_light()
+        if(input$which_theme == "Dark") myplot <- myplot + theme_dark()
         
         myplot + theme(legend.position = "bottom")
         

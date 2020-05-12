@@ -28,5 +28,14 @@ nyt_raw <- read_csv(nyt_usa_data_url)
 nyt_raw %>%
   pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number") -> nyt_data
 
+jhu_confirmed_raw <- read_csv(jhu_confirmed_global_url)
+jhu_confirmed_raw %>%
+  pivot_longer(`1/22/20`:`3/7/20`, names_to = "date", values_to = "cumulative_number")
+
+jhu_deaths_raw <- read_csv(jhu_deaths_global_url)
+
+
+
+
 
 # NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
