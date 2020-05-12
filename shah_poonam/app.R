@@ -14,13 +14,14 @@ library(shinythemes)
 library(tidyverse)
 library(colourpicker)
 
+
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file!
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
 
 # UI --------------------------------
 ui <- shinyUI(
         navbarPage( theme = shinytheme("simplex"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "Covid data graph", ### Replace title with something reasonable
+                   title = "Covid data app", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -33,25 +34,25 @@ ui <- shinyUI(
                         
                         #Selecting up the select box for diferent states
                         selectInput("which_state", # input$which_state
-                                   "Which state would you like to plot?",
+                                   "What state do you want to see?",
                                    choices = usa_states,
                                    selected = "Maryland"),
                         
                         #setting up the radio buttons for facet_county
                         radioButtons("facet_county", # input$facet_county
-                                     "Show counties across panels, or pool all counties",
-                                     choices = c('No', "Yes"),
-                                     selected = "No"),
+                                     "How do you want to see the data? By whole state or each counties?",
+                                     choices = c('State', "Counties"),
+                                     selected = "State"),
                         
                        #setting up the radio buttons for y scale
                         radioButtons("y_scale", #input$y_scale
-                                     "Scale for Y-axis?",
+                                     "How do you want to see the Y-axis?",
                                      choices = c('Linear', "Log"),
                                      selected = "Linear"),
                        
                         #Select box for chanigng the themes
                         selectInput("which_theme", # input$which_theme
-                                    "Which ggplot theme to use?",
+                                    "Which type graph theme you want to use?",
                                     choices = c("Classic", "Minimal", "Dark", "Light"),
                                     selected = "Classic")
  
@@ -71,33 +72,27 @@ ui <- shinyUI(
                      # All user-provided input for JHU goes in here:
                      sidebarPanel(
 
-                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "lightblue4"),
+                         colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "blueviolet"),
                          colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "chocolate4"),
                          
-                         #Selecting up the select box for diferent country
-                         
+ 
                          #Selecting up the select box for diferent country/region
                          
                          selectInput("which_country", # input$which_country
-                                     "Which country/region would you like to plot?",
+                                     "What country/region do you want to see?",
                                      choices = world_countries_regions,
                                      selected = "Sweden"),
                          
-                         #setting up the radio buttons for county
-                         radioButtons("facet_region",  #input$facet_region
-                                      "Show counties across panels, or pool all counties",
-                                      choices = c('No', "Yes"),
-                                      selected = "No"),
                          
                          #setting up the radio buttons for y scale
                          radioButtons("y_scale_jhu",   #input$y_scale_jhu
-                                      "Scale for Y-axis?",
+                                      "How do you want to see the Y-axis?",
                                       choices = c('Linear', "Log"),
                                       selected = "Linear"),
                          
                          #Select box for changing the themes
                          selectInput("choose_theme", # input$choose_theme
-                                     "Choose a ggplot theme to use?",
+                                     "Choose a graph theme to use?",
                                      choices = c("Classic", "Minimal", "Dark", "Light"),
                                      selected = "Classic")
                          
@@ -125,14 +120,14 @@ server <- function(input, output, session) {
           nyt_data %>%
             filter(state == input$which_state) -> nyt_state
         
-        if(input$facet_county == "No"){
+        if(input$facet_county == "State"){
             
             #combine state data to get single point per for cases/deaths
             nyt_state %>%
             group_by(date, covid_type) %>%
             summarize(y = sum(cumulative_number)) -> final_nyt_state
     }
-    if(input$facet_county == "Yes"){
+    if(input$facet_county == "Counties"){
         nyt_state %>%
             rename(y=cumulative_number) -> final_nyt_state
     }
@@ -155,7 +150,7 @@ server <- function(input, output, session) {
             myplot <- myplot + scale_y_log10()
         }
         #Dealing with input$facet_wrap
-        if(input$facet_county == "Yes") myplot <- myplot + facet_wrap(~county, scales = "free_y")
+        if(input$facet_county == "Counties") myplot <- myplot + facet_wrap(~county, scales = "free_y")
         
         #dealing with the input$which_theme choice
         
@@ -166,9 +161,16 @@ server <- function(input, output, session) {
         if(input$which_theme == "Dark") myplot <- myplot + theme_dark()  
         
         if(input$which_theme == "Light") myplot <- myplot + theme_light()
-            
+        
+  
         #return the plot
-        myplot + theme(legend.position = "bottom")
+        myplot + theme(legend.position = "bottom",
+                plot.title = element_text(size = 20, face = "bold"),
+                legend.text = element_text(size = 15),
+                legend.title = element_text(size= 15, face = "bold"),
+                axis.title = element_text(size = 14, face = "bold"),
+                axis.text = element_text(size = 12))
+                      
     })
     
 
@@ -182,7 +184,7 @@ server <- function(input, output, session) {
         group_by(date, covid_type) %>%
        filter(Country_or_Region == input$which_country) -> jhu_country
       
-      if(input$facet_region == "No"){
+   {
         
         #combine state data to get single point per for cases/deaths
         jhu_country %>%
@@ -190,13 +192,6 @@ server <- function(input, output, session) {
           summarize(y = sum(cumulative_number)) -> final_jhu_country
         
       }
-      
-      if(input$facet_region == "Yes") {
-        jhu_country %>%
-          rename(y=cumulative_number) -> final_jhu_country
-      }
-      
-      final_jhu_country
       
     })
     
@@ -215,10 +210,7 @@ server <- function(input, output, session) {
       if(input$y_scale_jhu == "Log") {
         myjhu_plot <- myjhu_plot + scale_y_log10()
       }
-      #Dealing with input$facet_wrap
-      
-      if(input$facet_region == "Yes") myjhu_plot <- myjhu_plot + facet_wrap(~Province_or_State, scales = "free")
-      
+
       #dealing with the input$choose_theme choice
       
       if(input$choose_theme == "Classic") myjhu_plot <- myjhu_plot + theme_classic()
@@ -229,8 +221,14 @@ server <- function(input, output, session) {
       
       if(input$choose_theme == "Light") myjhu_plot <- myjhu_plot + theme_light()
       
+      
      # return the plot
-      myjhu_plot + theme(legend.position = "bottom")
+      myjhu_plot + theme(legend.position = "bottom",
+                         plot.title = element_text(size = 20, face = "bold"),
+                         legend.text = element_text(size = 15),
+                         legend.title = element_text(size= 15, face = "bold"),
+                         axis.title = element_text(size = 14, face = "bold"),
+                         axis.text = element_text(size = 12))
       
     })
     
