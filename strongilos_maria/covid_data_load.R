@@ -33,18 +33,28 @@ jhu_confirmed_raw<- read_csv(jhu_confirmed_global_url)
 jhu_deaths_raw<- read_csv(jhu_deaths_global_url)
 
 jhu_confirmed_raw%>%
-pivot_longer(c(-'Country/Region', -'Province/State',-Lat,-Long), names_to = "Date", values_to = "cases")-> jhu_confirmed_data 
+pivot_longer(c(-'Country/Region', -'Province/State',-Lat,-Long), names_to = "date", values_to = "cases")-> jhu_confirmed_data 
 
 jhu_deaths_raw%>%
-  pivot_longer(c(-'Country/Region', -'Province/State',-Lat,-Long), names_to = "Date", values_to = "deaths") -> jhu_deaths_data
+  pivot_longer(c(-'Country/Region', -'Province/State',-Lat,-Long), names_to = "date", values_to = "deaths")-> jhu_deaths_data
 
 
 jhu_join_raw<- full_join(jhu_confirmed_data, jhu_deaths_data)
 
 jhu_join_raw%>%
-  pivot_longer(cases:deaths, names_to= "covid_type", values_to= "cumulative_number") -> jhu_data1
+  pivot_longer(cases:deaths, names_to= "covid_type", values_to= "cumulative_number")%>%
+  mutate(date= lubridate::mdy(date))%>%
+  rename(
+    province_or_state = `Province/State`,
+    country_or_region = `Country/Region`,
+    latitude = Lat,
+    longitude= Long )-> jhu_data
 
-jhu_data1 %>%
-  str_replace_all(Date, "/", "-") -> yes
+
+
+#  work_damn_it<- str_replace_all(jhu_data, "/", "-")
+  
+
+
 
 # NOTE: You do NOT need to save  delete before submitany data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!

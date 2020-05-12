@@ -160,13 +160,13 @@ server<- function(input, output, session) {
     jhu_data_subset <- reactive({
       
      jhu_data %>%
-        filter('Country/Region' == input$which_country)-> jhu_country
+        filter(country_or_region == input$which_country)-> jhu_country
       
      if(input$facet_state =="No"){
         
         jhu_country%>%
           #combine county data to get single point per day for case/death
-          group_by(Date, covid_type)%>%
+          group_by(date, covid_type)%>%
           summarize(y = sum(cumulative_number)) -> final_jhu_country
       }
       
@@ -181,7 +181,7 @@ server<- function(input, output, session) {
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$jhu_plot <- renderPlot({  jhu_data_subset()%>%
-        ggplot(aes(x= Date, y= y, color= covid_type, group= covid_type))+
+        ggplot(aes(x= date, y= y, color= covid_type, group= covid_type))+
         geom_point() +
         geom_line() +
         scale_color_manual(values= c(input$jhu_color_cases, input$jhu_color_deaths))+
