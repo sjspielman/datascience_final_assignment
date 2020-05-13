@@ -25,8 +25,11 @@ nyt_raw <-read_csv(nyt_usa_data_url)
 nyt_raw %>%
   pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number")->nyt_data
 
-
+##note to self do not save data with read_csv!!
 jhu_confirmed <- read_csv(jhu_confirmed_global_url)
 
 jhu_deaths <- read_csv(jhu_deaths_global_url)
+ 
+##Practice JHU data moduel in untitled tab -m
+
 

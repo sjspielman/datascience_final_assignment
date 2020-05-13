@@ -140,9 +140,7 @@ server <- function(input, output, session) {
         
         #Code for the plot to be plotted with either Linear or Log scale on y-axis
         my_nytplot + theme(legend.position = "bottom", #position for the plot label 
-        axis.text = element_text(size = 12, color = "gray0", face = "bold")) #enhancing plot theme for easier viewing 
-        
-        
+        axis.text = element_text(size = 13, color = "gray0", face = "bold")) #enhancing plot theme for easier viewing 
         
         
     })
@@ -153,8 +151,10 @@ server <- function(input, output, session) {
     ## All server logic for JHU goes here ------------------------------------------
 
     
+    
     ## Define a reactive for subsetting the JHU data
     jhu_data_subset <- reactive({})
+    #had one last bug in my code, code found in untitled tab, didn't include here because it stopped the app from running - m 
     
     ## Define your renderPlot({}) for JHU panel that plots the reactive variable. ALL PLOTTING logic goes here.
     output$jhu_plot <- renderPlot({})
