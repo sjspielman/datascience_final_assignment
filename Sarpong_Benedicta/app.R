@@ -13,6 +13,7 @@ library(shiny)
 library(shinythemes)
 library(tidyverse)
 library(colourpicker)
+library(plotly)
 
 source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", which is expected to be in the same directory as this shiny app file! #gives us full access to data in .R 
 # The variables defined in `covid_data_load.R` are how fully accessible in this shiny app script!!
@@ -20,7 +21,7 @@ source("covid_data_load.R") ## This line runs the Rscript "covid_data_load.R", w
 # UI --------------------------------
 ui <- shinyUI(
         navbarPage( theme = shinytheme("simplex"), ### Uncomment the theme and choose your own favorite theme from these options: https://rstudio.github.io/shinythemes/
-                   title = "YOUR VERY INTERESTING TITLE", ### Replace title with something reasonable
+                   title = "COVID-19 shiny app", ### Replace title with something reasonable
             
             ## All UI for NYT goes in here:
             tabPanel("NYT data visualization", ## do not change this name
@@ -35,7 +36,7 @@ ui <- shinyUI(
                                 "Which state would you like to plot?",
                                 choices=usa_states, 
                                 selected="Pennsylvania"), 
-                    radioButtons("y_scale",
+                    radioButtons("y_scale_nyt",
                                  "Y axis scale?", 
                                  choices=c("Linear","Log"), 
                                  selected="Linear"), 
@@ -51,8 +52,7 @@ ui <- shinyUI(
                         plotOutput("nyt_plot")
                     ) # closes NYT mainPanel. Note: we DO NOT use a comma here, since the next line closes a previous function  
             ), # closes tabPanel for NYT data
-            
-            
+                    
             ## All UI for JHU goes in here:
             tabPanel("JHU data visualization", ## do not change this name
                      
@@ -62,18 +62,19 @@ ui <- shinyUI(
                          colourpicker::colourInput("jhu_color_cases", "Color for plotting COVID cases:", value = "pink"),
                          colourpicker::colourInput("jhu_color_deaths", "Color for plotting COVID deaths:", value = "blue"), 
                          selectInput("which_country", 
-                                     "Which country or region would you like to plot?",
-                                     choices=country_or_region, 
+                                     "Which country or region would you like to plot?", 
+                                     choices=world_countries_regions, 
                                      selected="Canada"), 
-                         radioButtons("y_scale",
+                         radioButtons("y_scale_jhu",
                                       "Y axis scale?", 
                                       choices=c("Linear","Log"), 
                                       selected="Linear"), 
                          selectInput("which_theme", 
                                      "Which ggplot theme woulld youk like to use?",
                                      choices=c("Classic", "Minimal", "Dark", "Grey"), 
-                                     selected="Classic"), 
-                         
+                                     selected="Classic"),
+                         #dateRangeInput("dates", 
+                                        #"select a date range"),
                          
                          
                      ), # closes JHU sidebarPanel     
@@ -112,7 +113,7 @@ server <- function(input, output, session) {
             geom_line()+
             scale_color_manual(values =c(input$nyt_color_cases , input$nyt_color_deaths)) +
             labs(title=paste(input$which_state, "cases and deaths"), y="Cumulative count")->nyt_myplot
-        if(input$y_scale=="Log"){
+        if(input$y_scale_nyt=="Log"){
             nyt_myplot<-nyt_myplot+scale_y_log10() #if user picks log use log scale 
             
         }
@@ -154,28 +155,33 @@ server <- function(input, output, session) {
             geom_line()+
             scale_color_manual(values =c(input$nyt_color_cases , input$nyt_color_deaths)) +
             labs(title=paste(input$which_country, "cases and deaths"), y="Cumulative count")->jhu_myplot
-        if(input$y_scale=="Log"){
+        if(input$y_scale_jhu=="Log"){
             jhu_myplot<-jhu_myplot+scale_y_log10() #if user picks log use log scale 
-            
         }
-        
         if(input$which_theme=="Classic"){
-            nyt_myplot<-jhu_myplot+theme_classic()}
+            jhu_myplot<-jhu_myplot+theme_classic()}
         if(input$which_theme=="Dark"){
-            nyt_myplot<-jhu_myplot+theme_dark()}
+            jhu_myplot<-jhu_myplot+theme_dark()}
         if(input$which_theme=="Minimal"){
-            nyt_myplot<-jhu_myplot+theme_minimal()}
+            jhu_myplot<-jhu_myplot+theme_minimal()}
         if(input$which_theme=="Grey"){
-            nyt_myplot<-jhu_myplot+theme_grey()}
+            jhu_myplot<-jhu_myplot+theme_grey()}
         
-        jhu_myplot+theme(text = element_text(size=16)) #change axis sizes 
+        paste("input$Date Range", as.character(input$date))
+        paste("input$Date Range", 
+                  paste(as.character(input$dateRange), collapse = " to ")
+            )
+          
+        jhu_myplot+theme(text = element_text(size=16)) #change axis sizes
+            
+        })
         
-        
-        
-        
-    })
     
+     
 }
+
+    
+
 
 
 

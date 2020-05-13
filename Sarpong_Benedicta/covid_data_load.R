@@ -24,7 +24,10 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 
 nyt_raw<-read_csv(nyt_usa_data_url)
 nyt_raw%>%
-  pivot_longer(cases:deaths, names_to="covid_type", values_to="cumulative_number")->nyt_data #need to change cases and death to covid type and cumulitive #
+  pivot_longer(cases:deaths, names_to="covid_type", values_to="cumulative_number")->nyt_data
+
+  
+ #need to change cases and death to covid type and cumulitive #
 
 jhu_cases<-read_csv(jhu_confirmed_global_url)
 jhu_cases%>%
@@ -42,7 +45,7 @@ left_join(cases,deaths)%>%
          Latitude=Lat, 
          province_or_state="Province/State",
          country_or_region="Country/Region")->jhu_data 
-#jhu_data$date<-lubridate::as_date(jhu_data$date)
+lubridate::mdy(jhu_data$date)->jhu_data$date
   
 
 
