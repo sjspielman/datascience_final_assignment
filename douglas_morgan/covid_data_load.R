@@ -21,8 +21,12 @@ jhu_deaths_global_url    <- paste0(jhu_top_url, "time_series_covid19_deaths_glob
 
 ## Read in all THREE datasets and tidy/wrangle them into one JHU and one NYT dataset according to the instructions --------------------------
 
+nyt_raw <-read_csv(nyt_usa_data_url)
+nyt_raw %>%
+  pivot_longer(cases:deaths, names_to = "covid_type", values_to = "cumulative_number")->nyt_data
 
 
+jhu_confirmed <- read_csv(jhu_confirmed_global_url)
 
+jhu_deaths <- read_csv(jhu_deaths_global_url)
 
-# NOTE: You do NOT need to save any data!! Never use write_csv()!! The two variables you create can be *directly used* in the shiny app, since this file is sourced!! PLEASE DELETE THIS COMMENT BEFORE SUBMITTING THANKS!!!
